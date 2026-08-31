@@ -30,21 +30,4 @@ db.sqlite3-journal
 local_settings.py
 # Archivos subidos por los usuarios (adjuntos) - NO van al repo
 /media/
-# Estaticos recolectados para produccion (se generan con collectstatic)
-/staticfiles/
 
-# --- Exportaciones de datos (pueden contener informacion sensible) ---
-# Descomenta si en algun momento generas volcados con "dumpdata":
-# datos.json
-
-# --- Editores / IDE ---
-.vscode/
-.idea/
-*.swp
-
-# --- Sistema operativo ---
-# Windows
-Thumbs.db
-desktop.ini
-# macOS
-.DS_Store
