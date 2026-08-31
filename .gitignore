@@ -1,0 +1,50 @@
+# ===========================================================================
+# .gitignore - Gestion Juridica Web (Django)
+# Archivos y carpetas que NO se versionan ni se suben a GitHub.
+# ===========================================================================
+
+# --- Secretos y configuracion local (LO MAS IMPORTANTE) ---
+# Contiene SECRET_KEY, DATABASE_URL y la contrasena de la base. NUNCA se sube.
+.env
+.env.*
+!.env.example
+
+# --- Entorno virtual ---
+.venv/
+venv/
+env/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+
+# --- Django ---
+# Base de datos local de desarrollo (no se versiona)
+db.sqlite3
+db.sqlite3-journal
+# Registros de la aplicacion
+*.log
+# Configuracion local que a veces se usa aparte
+local_settings.py
+# Archivos subidos por los usuarios (adjuntos) - NO van al repo
+/media/
+# Estaticos recolectados para produccion (se generan con collectstatic)
+/staticfiles/
+
+# --- Exportaciones de datos (pueden contener informacion sensible) ---
+# Descomenta si en algun momento generas volcados con "dumpdata":
+# datos.json
+
+# --- Editores / IDE ---
+.vscode/
+.idea/
+*.swp
+
+# --- Sistema operativo ---
+# Windows
+Thumbs.db
+desktop.ini
+# macOS
+.DS_Store
