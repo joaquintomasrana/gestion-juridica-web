@@ -8,6 +8,8 @@
 .env
 .env.*
 !.env.example
+hoja_de_ruta.md
+
 
 # --- Entorno virtual ---
 .venv/
@@ -31,3 +33,4 @@ local_settings.py
 # Archivos subidos por los usuarios (adjuntos) - NO van al repo
 /media/
 
+hoja-de-ruta.md
