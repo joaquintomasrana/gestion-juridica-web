@@ -1,4 +1,7 @@
+from decimal import Decimal
+
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
@@ -29,6 +32,7 @@ class Expediente(models.Model):
     estado = models.CharField(max_length=20, choices=Estado.choices, default=Estado.ACTIVO)
     observaciones = models.TextField(blank=True)
     creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-creado"]
@@ -95,7 +99,7 @@ class Vencimiento(models.Model):
     class Estado(models.TextChoices):
         PENDIENTE = "pendiente", "Pendiente"
         CUMPLIDO = "cumplido", "Cumplido"
-        VENCIDO = "vencido", "Vencido"
+
 
     expediente = models.ForeignKey(Expediente, on_delete=models.CASCADE, related_name="vencimientos")
     fecha = models.DateField()
@@ -116,7 +120,11 @@ class Vencimiento(models.Model):
 class Honorario(models.Model):
     expediente = models.ForeignKey(Expediente, on_delete=models.CASCADE, related_name="honorarios")
     fecha = models.DateField()
-    monto = models.DecimalField(max_digits=14, decimal_places=2)
+    monto = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
     moneda = models.CharField(max_length=3, choices=Moneda.choices, default=Moneda.ARS)
     concepto = models.CharField(max_length=200, blank=True)
     forma_pago = models.CharField("forma de pago", max_length=100, blank=True)
@@ -124,16 +132,25 @@ class Honorario(models.Model):
     def __str__(self):
         return f"{self.monto} {self.moneda} — {self.concepto}"
 
+    class Meta:
+        ordering = ["-fecha"]
 
 class Gasto(models.Model):
     expediente = models.ForeignKey(Expediente, on_delete=models.CASCADE, related_name="gastos")
     fecha = models.DateField()
-    monto = models.DecimalField(max_digits=14, decimal_places=2)
+    monto = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
     moneda = models.CharField(max_length=3, choices=Moneda.choices, default=Moneda.ARS)
     descripcion = models.CharField("descripción", max_length=300)
 
     def __str__(self):
         return f"{self.monto} {self.moneda} — {self.descripcion}"
+
+    class Meta:
+        ordering = ["-fecha"]
 
 
 def ruta_adjunto(instance, filename):
@@ -146,6 +163,11 @@ class ArchivoAdjunto(models.Model):
     archivo = models.FileField(upload_to=ruta_adjunto)
     descripcion = models.CharField("descripción", max_length=300, blank=True)
     subido = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-subido"]
+        verbose_name = "archivo adjunto"
+        verbose_name_plural = "archivos adjuntos"
 
     def __str__(self):
         return self.descripcion or self.archivo.name
