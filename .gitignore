@@ -31,6 +31,7 @@ db.sqlite3-journal
 # Configuracion local que a veces se usa aparte
 local_settings.py
 ruta.md
+consigna_*.md
 # Archivos subidos por los usuarios (adjuntos) - NO van al repo
 /media/
 
