@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block titulo %}Listado de expedientes {% endblock %}
+{% block contenido %}
+    
+    {% for expediente in expedientes %}
+        <div>
+            <h3>{{ expediente.caratula }}</h3>
+            <p>{{ expediente.numero | default:"Sin número asignado"}}</p>
+            <p>Fecha de creación: {{ expediente.creado }}</p>
+            <p>Fecha de ultima actualización: {{ expediente.actualizado }}</p>
+            <p>{{ expediente.get_estado_display }}</p>
+        </div>
+    {% empty %}
+        <p>No hay expedientes disponibles.</p>
+    {% endfor %}
+
+
+{% endblock %}
