@@ -1,8 +1,15 @@
 {% extends "base.html" %}
 {% block titulo %}Listado de expedientes {% endblock %}
 {% block contenido %}
-    
+   
+    <div> 
+        <h1>Listado de expedientes</h1>
+    </div>
+
+
     {% for expediente in expedientes %}
+
+    
         <div>
             <h3>{{ expediente.caratula }}</h3>
             <p>{{ expediente.numero | default:"Sin número asignado"}}</p>
