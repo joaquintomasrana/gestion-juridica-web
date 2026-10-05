@@ -36,7 +36,7 @@ En desarrollo. Se trata de un proyecto académico y se utiliza **exclusivamente 
 
 ## Instalación y uso local
 
-> La configuración se lee de variables de entorno. Es necesario un archivo `.env` (no versionado) con, al menos, las claves `SECRET_KEY` y `DATABASE_URL`.
+> La configuración se lee de variables de entorno. Es necesario un archivo `.env` (no versionado) con la clave `SECRET_KEY`. El archivo `.env.example` sirve de plantilla.
 
 ```bash
 # Clonar el repositorio
@@ -52,6 +52,14 @@ python -m venv .venv
 
 # Instalar dependencias
 pip install -r requirements.txt
+
+# Crear el archivo .env a partir de la plantilla
+cp .env.example .env
+# En Windows (PowerShell):
+# Copy-Item .env.example .env
+
+# Generar una clave secreta y pegarla en el .env como valor de SECRET_KEY
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 
 # Aplicar migraciones
 python manage.py migrate
