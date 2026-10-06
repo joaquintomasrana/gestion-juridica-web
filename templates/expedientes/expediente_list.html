@@ -11,7 +11,9 @@
 
     
         <div>
-            <h3>{{ expediente.caratula }}</h3>
+            <h3>
+                <a href="{% url 'expedientes:detalle' expediente.pk %}">{{ expediente.caratula }}</a>            
+            </h3>
             <p>{{ expediente.numero | default:"Sin número asignado"}}</p>
             <p>Fecha de creación: {{ expediente.creado }}</p>
             <p>Fecha de ultima actualización: {{ expediente.actualizado }}</p>

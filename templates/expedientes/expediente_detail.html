@@ -2,6 +2,8 @@
 {% block titulo %}Detalle del expediente {% endblock %}
 {% block contenido %}
    
+
+
     <div> 
         <h1>Detalle del expediente</h1>
     </div>
@@ -19,4 +21,9 @@
         <p>Fecha de ultima actualización: {{ expediente.actualizado }}</p>
      </div>
     
+    <div> 
+        <a href="{% url 'expedientes:lista' %}">Volver al listado de expedientes</a>
+    </div>
+
+
 {% endblock %}
