@@ -1,10 +1,28 @@
 {% extends "base.html" %}
-{% block titulo %}Nuevo expediente{% endblock %}
+{% block titulo %}
+{% if object %}
+  Modificar expediente
+{% else %}
+    Nuevo expediente
+{% endif %}
+{% endblock %}
+
 {% block contenido %}
-    <h2>Nuevo expediente</h2>
+    {% if object %}
+         <h2>Modificar expediente</h2>
+    {% else %}
+        <h2>Nuevo expediente</h2>
+    {% endif %}
+   
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Crear expediente</button>
+        <button type="submit">
+        {% if object %}
+            Guardar cambios
+        {% else %}
+            Crear expediente
+        {% endif %}
+        </button>
     </form>
 {% endblock %}
