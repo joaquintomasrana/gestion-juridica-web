@@ -32,6 +32,61 @@
         </ul>
     </div>
 
+    <div>
+        <h3>Pasos procesales</h3>
+        <ul>
+            {% for paso in expediente.pasos.all %}
+                <li>{{ paso.fecha }} - {{ paso.descripcion }}</li>
+            {% empty %}
+                <li>No hay pasos procesales asociados a este expediente.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div>
+        <h3>Vencimientos</h3>
+        <ul>
+            {% for vencimiento in expediente.vencimientos.all %}
+                <li>{{ vencimiento.fecha }} - {{ vencimiento.descripcion }} ({{ vencimiento.get_estado_display }})</li>
+            {% empty %}
+                <li>No hay vencimientos asociados a este expediente.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div>
+        <h3>Honorarios</h3>
+        <ul>
+            {% for honorario in expediente.honorarios.all %}
+                <li>{{ honorario.fecha }} - {{ honorario.monto }} {{ honorario.moneda }} - {{ honorario.concepto | default:"Sin concepto"}}</li>
+            {% empty %}
+                <li>No hay honorarios asociados a este expediente.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div>
+        <h3>Gastos</h3>
+        <ul>
+            {% for gasto in expediente.gastos.all %}
+                <li>{{ gasto.fecha }} - {{ gasto.monto }} {{ gasto.moneda }} - {{ gasto.descripcion }}</li>
+            {% empty %}
+                <li>No hay gastos asociados a este expediente.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div>
+        <h3>Adjuntos</h3>
+        <ul>
+            {% for adjunto in expediente.adjuntos.all %}
+                <li>{{ adjunto.descripcion | default:adjunto.archivo.name }}</li>
+            {% empty %}
+                <li>No hay adjuntos asociados a este expediente.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
     <div> 
         <a href="{% url 'expedientes:lista' %}">Volver al listado de expedientes</a>
     </div>
