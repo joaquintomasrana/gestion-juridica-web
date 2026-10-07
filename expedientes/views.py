@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Expediente
+from django.urls import reverse_lazy
 
 # Create your views here.
 
@@ -34,6 +35,14 @@ class ExpedienteUpdateView(LoginRequiredMixin, UpdateView):
     model = Expediente
     template_name = "expedientes/expediente_form.html"
     fields = ['numero', 'caratula', 'fuero_juzgado', 'fecha_inicio', 'tipo_proceso', 'estado', 'observaciones']
+
+    def get_queryset(self):
+        return Expediente.objects.filter(owner=self.request.user)
+    
+class ExpedienteDeleteView(LoginRequiredMixin, DeleteView):
+    model = Expediente
+    template_name = "expedientes/expediente_confirm_delete.html"
+    success_url = reverse_lazy('expedientes:lista')
 
     def get_queryset(self):
         return Expediente.objects.filter(owner=self.request.user)

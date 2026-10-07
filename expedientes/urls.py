@@ -8,4 +8,5 @@ urlpatterns = [
     path('expediente/<int:pk>/', views.ExpedienteDetailView.as_view(), name='detalle'),
     path('expediente/nuevo/', views.ExpedienteCreateView.as_view(), name='nuevo'),
     path('expediente/<int:pk>/editar/', views.ExpedienteUpdateView.as_view(), name='editar'),
+    path('expediente/<int:pk>/eliminar/', views.ExpedienteDeleteView.as_view(), name='eliminar')
 ]

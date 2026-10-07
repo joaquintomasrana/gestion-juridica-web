@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}Borrar expediente {% endblock %}
+{% block contenido %}
+   
+
+
+    <div> 
+        <h1>¿Seguro que quiere borrar este expediente?</h1>
+        <p>Esta acción no se puede deshacer.</p>
+        <p>Se perderá la totalidad de la información asociada al mismo.</p>
+    </div>
+
+    <div>
+        <h2>Datos del expediente a eliminar</h2>
+        <h3>{{ expediente.caratula }}</h3>
+        <p>Número: {{ expediente.numero | default:"Sin número asignado"}}</p>
+        <p>Estado: {{ expediente.get_estado_display }}</p>
+        <p>Fuero / juzgado: {{ expediente.fuero_juzgado | default:"Sin especificar"}}</p>
+        <p>Tipo de proceso: {{ expediente.tipo_proceso | default:"Sin especificar"}}</p>
+        <p>Fecha de inicio: {{ expediente.fecha_inicio | default:"Sin especificar"}}</p>
+        <p>Observaciones: {{ expediente.observaciones | default:"Sin observaciones"}}</p>
+        <p>Fecha de creación: {{ expediente.creado }}</p>
+        <p>Fecha de ultima actualización: {{ expediente.actualizado }}</p>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Confirmar borrado</button>
+    </form>
+  
+
+    <div> 
+        <a href="{% url 'expedientes:lista' %}">Volver al listado de expedientes</a>
+    </div>
+
+
+{% endblock %}
