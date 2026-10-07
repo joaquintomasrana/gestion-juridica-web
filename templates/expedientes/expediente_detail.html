@@ -22,6 +22,17 @@
      </div>
     
     <div> 
+        <h3>Partes</h3>
+        <ul>
+            {% for parte in expediente.partes.all %}
+                <li>{{ parte.nombre }} - {{ parte.get_tipo_display }}</li>
+            {% empty %}
+                <li>No hay partes asociadas a este expediente.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div> 
         <a href="{% url 'expedientes:lista' %}">Volver al listado de expedientes</a>
     </div>
 
