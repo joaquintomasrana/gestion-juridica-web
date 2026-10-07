@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, CreateView
 from .models import Expediente
 
 # Create your views here.
@@ -21,4 +21,12 @@ class ExpedienteDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         return Expediente.objects.filter(owner=self.request.user)
     
+class ExpedienteCreateView(LoginRequiredMixin, CreateView):
+    model = Expediente
+    template_name = "expedientes/expediente_form.html"
+    fields = ['numero', 'caratula', 'fuero_juzgado', 'fecha_inicio', 'tipo_proceso', 'estado', 'observaciones']
 
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
