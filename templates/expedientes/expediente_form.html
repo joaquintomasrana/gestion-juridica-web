@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block titulo %}Nuevo expediente{% endblock %}
+{% block contenido %}
+    <h2>Nuevo expediente</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Crear expediente</button>
+    </form>
+{% endblock %}
