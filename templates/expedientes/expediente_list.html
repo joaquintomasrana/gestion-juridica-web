@@ -3,6 +3,10 @@
 {% block contenido %}
    
     <div> 
+        <a href="{% url 'expedientes:nuevo' %}">Crear nuevo expediente</a>
+    </div>
+
+    <div> 
         <h1>Listado de expedientes</h1>
     </div>
 
@@ -22,6 +26,7 @@
     {% empty %}
         <p>No hay expedientes disponibles.</p>
     {% endfor %}
+
 
 
 {% endblock %}
