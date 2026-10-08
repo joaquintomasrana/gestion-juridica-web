@@ -12,7 +12,10 @@ class ExpedienteListView(LoginRequiredMixin, ListView):
     context_object_name = "expedientes"
     
     def get_queryset(self):
-        return Expediente.objects.filter(owner=self.request.user)
+        qs = Expediente.objects.filter(owner=self.request.user)
+        q = self.request.GET.get("q", "")
+        qs = qs.filter(numero__icontains=q) | qs.filter(caratula__icontains=q) | qs.filter(fuero_juzgado__icontains=q) | qs.filter(tipo_proceso__icontains=q) | qs.filter(observaciones__icontains=q)
+        return qs
 
 class ExpedienteDetailView(LoginRequiredMixin, DetailView):
     model = Expediente

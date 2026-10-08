@@ -6,6 +6,14 @@
         <a href="{% url 'expedientes:nuevo' %}">Crear nuevo expediente</a>
     </div>
 
+    <div>
+        <form method="get">
+            <input type="text" name="q" placeholder="Buscar..." value="{{ request.GET.q }}">
+            <button type="submit">Buscar</button>
+        </form>
+    </div>
+
+
     <div> 
         <h1>Listado de expedientes</h1>
     </div>
