@@ -19,6 +19,12 @@ class ExpedienteListView(LoginRequiredMixin, ListView):
         if estado:
             qs = qs.filter(estado=estado)
         return qs
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["estados"] = Expediente.Estado.choices
+        return context
+    
 
 class ExpedienteDetailView(LoginRequiredMixin, DetailView):
     model = Expediente

@@ -9,6 +9,19 @@
     <div>
         <form method="get">
             <input type="text" name="q" placeholder="Buscar..." value="{{ request.GET.q }}">
+
+            <select name="estado">
+                <option value="">Todos</option>
+                
+                {% for estado_interno, estado_visible in estados %}
+                    <option value="{{ estado_interno }}" {% if estado_interno == request.GET.estado %} selected {% endif %}>{{ estado_visible }}</option>
+                {% endfor %}
+                
+
+            </select>   
+
+
+
             <button type="submit">Buscar</button>
         </form>
     </div>
