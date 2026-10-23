@@ -10,6 +10,7 @@ class ExpedienteListView(LoginRequiredMixin, ListView):
     model = Expediente
     template_name = "expedientes/expediente_list.html"
     context_object_name = "expedientes"
+    paginate_by = 10
     
     def get_queryset(self):
         qs = Expediente.objects.filter(owner=self.request.user)
