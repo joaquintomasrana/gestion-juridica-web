@@ -12,6 +12,11 @@
 
     
 <body>
+    <nav>
+        <strong>Gestión Jurídica</strong>
+        <a href="{% url 'expedientes:lista' %}">Expedientes</a>
+    </nav>
+
     {% block contenido %}
     {% endblock %}
 </body>
