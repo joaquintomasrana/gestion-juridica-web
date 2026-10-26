@@ -14,7 +14,12 @@
 <body>
     <nav>
         <strong>Gestión Jurídica</strong>
-        <a href="{% url 'expedientes:lista' %}">Expedientes</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'expedientes:lista' %}">Expedientes</a>
+        {% else %}
+            <a href="{% url 'login' %}">Iniciar sesión</a>
+            <a href="{% url 'registro' %}">Registrarse</a>
+        {% endif %}
     </nav>
 
     {% block contenido %}
