@@ -36,7 +36,7 @@ En desarrollo. Se trata de un proyecto académico y se utiliza **exclusivamente 
 
 ## Instalación y uso local
 
-> La configuración se lee de variables de entorno. Es necesario un archivo `.env` (no versionado) con la clave `SECRET_KEY`. El archivo `.env.example` sirve de plantilla.
+> La configuración se lee de variables de entorno. Es necesario un archivo `.env` (no versionado) con la clave `SECRET_KEY`, `DEBUG` y `ALLOWED_HOSTS`. El archivo `.env.example` sirve de plantilla.
 
 ```bash
 # Clonar el repositorio
