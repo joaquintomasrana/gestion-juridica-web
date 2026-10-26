@@ -16,6 +16,11 @@
         <strong>Gestión Jurídica</strong>
         {% if user.is_authenticated %}
             <a href="{% url 'expedientes:lista' %}">Expedientes</a>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit">Cerrar sesión</button>
+            </form>
+
         {% else %}
             <a href="{% url 'login' %}">Iniciar sesión</a>
             <a href="{% url 'registro' %}">Registrarse</a>
