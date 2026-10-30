@@ -44,6 +44,12 @@ class ExpedienteCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["owner"] = self.request.user
+        return kwargs
+
 
 class ExpedienteUpdateView(LoginRequiredMixin, UpdateView):
     model = Expediente
@@ -52,6 +58,11 @@ class ExpedienteUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return Expediente.objects.filter(owner=self.request.user)
+    
+    def get_form_kwargs(self):
+            kwargs = super().get_form_kwargs()
+            kwargs["owner"] = self.request.user
+            return kwargs
     
 class ExpedienteDeleteView(LoginRequiredMixin, DeleteView):
     model = Expediente
