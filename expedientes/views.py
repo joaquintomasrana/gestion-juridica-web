@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Expediente
+from .forms import ExpedienteForm
 from django.urls import reverse_lazy
 
 # Create your views here.
@@ -38,7 +39,7 @@ class ExpedienteDetailView(LoginRequiredMixin, DetailView):
 class ExpedienteCreateView(LoginRequiredMixin, CreateView):
     model = Expediente
     template_name = "expedientes/expediente_form.html"
-    fields = ['numero', 'caratula', 'fuero_juzgado', 'fecha_inicio', 'tipo_proceso', 'estado', 'observaciones']
+    form_class = ExpedienteForm
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -47,7 +48,7 @@ class ExpedienteCreateView(LoginRequiredMixin, CreateView):
 class ExpedienteUpdateView(LoginRequiredMixin, UpdateView):
     model = Expediente
     template_name = "expedientes/expediente_form.html"
-    fields = ['numero', 'caratula', 'fuero_juzgado', 'fecha_inicio', 'tipo_proceso', 'estado', 'observaciones']
+    form_class = ExpedienteForm
 
     def get_queryset(self):
         return Expediente.objects.filter(owner=self.request.user)
