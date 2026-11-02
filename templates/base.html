@@ -27,6 +27,10 @@
         {% endif %}
     </nav>
 
+    {% for mensaje in messages %}
+        <p>{{ mensaje }}</p>
+    {% endfor %}
+
     {% block contenido %}
     {% endblock %}
 </body>

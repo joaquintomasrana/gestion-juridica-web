@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Expediente
@@ -38,10 +38,11 @@ class ExpedienteDetailView(ExpedientePropioMixin, DetailView):
     model = Expediente
     template_name = "expedientes/expediente_detail.html"
     
-class ExpedienteCreateView(LoginRequiredMixin, CreateView):
+class ExpedienteCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Expediente
     template_name = "expedientes/expediente_form.html"
     form_class = ExpedienteForm
+    success_message = "Expediente creado."
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -52,18 +53,22 @@ class ExpedienteCreateView(LoginRequiredMixin, CreateView):
         kwargs["owner"] = self.request.user
         return kwargs
 
-class ExpedienteUpdateView(ExpedientePropioMixin, UpdateView):
+class ExpedienteUpdateView(ExpedientePropioMixin, SuccessMessageMixin, UpdateView):
     model = Expediente
     template_name = "expedientes/expediente_form.html"
     form_class = ExpedienteForm
+    success_message = "Cambios guardados."
+
+
     
     def get_form_kwargs(self):
-            kwargs = super().get_form_kwargs()
-            kwargs["owner"] = self.request.user
-            return kwargs
+        kwargs = super().get_form_kwargs()
+        kwargs["owner"] = self.request.user
+        return kwargs
     
-class ExpedienteDeleteView(ExpedientePropioMixin, DeleteView):
+class ExpedienteDeleteView(ExpedientePropioMixin, SuccessMessageMixin, DeleteView):
     model = Expediente
     template_name = "expedientes/expediente_confirm_delete.html"
     success_url = reverse_lazy('expedientes:lista')
+    success_message = "Expediente eliminado."
 

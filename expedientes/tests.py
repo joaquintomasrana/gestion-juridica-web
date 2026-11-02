@@ -103,3 +103,30 @@ class NumeroDeExpedienteTests(DosUsuariosTestCase):
             "caratula": "Gomez c/ Perez (editado)", "estado": "activo", "numero": "100/2026",
         })
         self.assertRedirects(respuesta, self.exp_ana.get_absolute_url())
+
+class MensajesTests(DosUsuariosTestCase):
+    def setUp(self):
+        self.client.force_login(self.ana)
+
+    def test_crear_muestra_mensaje_de_confirmacion(self):
+        respuesta = self.client.post(
+            reverse("expedientes:nuevo"),
+            {"caratula": "Nuevo", "estado": "activo"},
+            follow=True,
+        )
+        self.assertContains(respuesta, "Expediente creado.")
+
+    def test_editar_muestra_mensaje_de_confirmacion(self):
+        respuesta = self.client.post(
+            reverse("expedientes:editar", args=[self.exp_ana.pk]),
+            {"caratula": "Editado", "estado": "activo"},
+            follow=True,
+        )
+        self.assertContains(respuesta, "Cambios guardados.")
+        
+    def test_eliminar_muestra_mensaje_de_confirmacion(self):
+        respuesta = self.client.post(
+            reverse("expedientes:eliminar", args=[self.exp_ana.pk]),
+            follow=True,
+        )
+        self.assertContains(respuesta, "Expediente eliminado.")
