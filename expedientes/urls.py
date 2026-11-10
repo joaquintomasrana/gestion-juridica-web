@@ -20,6 +20,7 @@ urlpatterns = [
     path('pasos/<int:pk>/editar/', views.PasoUpdateView.as_view(), name='paso_editar'),
     path('pasos/<int:pk>/eliminar/', views.PasoDeleteView.as_view(), name='paso_eliminar'),
 
+    path('vencimientos/', views.VencimientoListView.as_view(), name='vencimientos'),
     path('expediente/<int:expediente_pk>/vencimientos/nuevo/', views.VencimientoCreateView.as_view(), name='vencimiento_nuevo'),
     path('vencimientos/<int:pk>/editar/', views.VencimientoUpdateView.as_view(), name='vencimiento_editar'),
     path('vencimientos/<int:pk>/eliminar/', views.VencimientoDeleteView.as_view(), name='vencimiento_eliminar'),

@@ -1,13 +1,17 @@
 import os
 import shutil
 import tempfile
+from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.contrib.staticfiles import finders
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import connection
 from django.test import TestCase, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
+from django.utils import timezone
 
 from .forms import TAMANIO_MAXIMO
 from .models import ArchivoAdjunto, Expediente, Gasto, Honorario, Parte, PasoProcesal, Vencimiento
@@ -244,6 +248,92 @@ class TotalesTests(DosUsuariosTestCase):
             {"moneda": "ARS", "total": Decimal("1500.00")},
             {"moneda": "USD", "total": Decimal("300.00")},
         ])
+
+
+# --- Fase 9B: panel de vencimientos --------------------------------------------
+
+class PanelVencimientosTests(DosUsuariosTestCase):
+    def setUp(self):
+        self.hoy = timezone.localdate()
+        self.client.force_login(self.ana)
+
+    def crear(self, expediente, dias, descripcion, estado=Vencimiento.Estado.PENDIENTE):
+        return Vencimiento.objects.create(
+            expediente=expediente, fecha=self.hoy + timedelta(days=dias),
+            descripcion=descripcion, estado=estado,
+        )
+
+    def test_esta_vencido_y_vence_pronto(self):
+        P, C = Vencimiento.Estado.PENDIENTE, Vencimiento.Estado.CUMPLIDO
+        # (días desde hoy, estado, esta_vencido esperado, vence_pronto esperado)
+        casos = [
+            (-1, P, True, False),
+            (0, P, False, True),
+            (7, P, False, True),
+            (8, P, False, False),
+            (-1, C, False, False),
+            (3, C, False, False),
+        ]
+        for dias, estado, vencido, pronto in casos:
+            with self.subTest(dias=dias, estado=estado):
+                v = Vencimiento(expediente=self.exp_ana, fecha=self.hoy + timedelta(days=dias), estado=estado)
+                self.assertEqual(v.esta_vencido, vencido)
+                self.assertEqual(v.vence_pronto, pronto)
+
+    def test_el_panel_solo_muestra_vencimientos_propios(self):
+        self.crear(self.exp_ana, 0, "Contestar demanda")
+        self.crear(self.exp_beto, 0, "Apelar sentencia")
+        respuesta = self.client.get(reverse("expedientes:vencimientos"))
+        self.assertContains(respuesta, "Contestar demanda")
+        self.assertNotContains(respuesta, "Apelar sentencia")
+        self.assertNotContains(respuesta, "Lopez c/ Diaz")
+
+    def test_el_panel_no_muestra_los_cumplidos(self):
+        self.crear(self.exp_ana, 2, "Ya presentado", estado=Vencimiento.Estado.CUMPLIDO)
+        respuesta = self.client.get(reverse("expedientes:vencimientos"))
+        self.assertNotContains(respuesta, "Ya presentado")
+        self.assertContains(respuesta, "No tenés vencimientos pendientes.")
+
+    def test_el_panel_ordena_por_fecha_y_marca_vencidos_y_proximos(self):
+        self.crear(self.exp_ana, 30, "Lejano")
+        self.crear(self.exp_ana, -5, "Atrasado")
+        self.crear(self.exp_ana, 3, "Cercano")
+        respuesta = self.client.get(reverse("expedientes:vencimientos"))
+        self.assertEqual(
+            [v.descripcion for v in respuesta.context["vencimientos"]],
+            ["Atrasado", "Cercano", "Lejano"],
+        )
+        self.assertEqual(respuesta.context["cantidad_vencidos"], 1)
+        self.assertEqual(respuesta.context["cantidad_proximos"], 1)
+
+    def test_el_panel_no_hace_una_consulta_por_fila(self):
+        """Problema N+1: con select_related, más filas no implican más consultas."""
+        url = reverse("expedientes:vencimientos")
+        self.crear(self.exp_ana, 1, "Uno")
+        with CaptureQueriesContext(connection) as con_una:
+            self.client.get(url)
+        for i in range(5):
+            self.crear(self.exp_ana, i, f"Otro {i}")
+        with CaptureQueriesContext(connection) as con_seis:
+            self.client.get(url)
+        self.assertEqual(len(con_una), len(con_seis))
+
+    def test_cumplir_desde_el_panel_vuelve_al_panel(self):
+        vencimiento = self.crear(self.exp_ana, 1, "Contestar")
+        url = reverse("expedientes:vencimiento_cumplir", args=[vencimiento.pk])
+        respuesta = self.client.post(url, {"volver": "panel"})
+        self.assertRedirects(respuesta, reverse("expedientes:vencimientos"))
+
+    def test_volver_no_acepta_urls_externas(self):
+        vencimiento = self.crear(self.exp_ana, 1, "Contestar")
+        url = reverse("expedientes:vencimiento_cumplir", args=[vencimiento.pk])
+        respuesta = self.client.post(url, {"volver": "https://sitio-malicioso.example"})
+        self.assertRedirects(respuesta, self.exp_ana.get_absolute_url())
+
+    def test_sin_sesion_redirige_al_login(self):
+        self.client.logout()
+        url = reverse("expedientes:vencimientos")
+        self.assertRedirects(self.client.get(url), f"{reverse('login')}?next={url}")
 
 
 # --- Fase 9: estilo y páginas de error -----------------------------------------

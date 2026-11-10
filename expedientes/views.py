@@ -198,6 +198,29 @@ class VencimientoDeleteView(HijoDeleteView):
     titulo = "Eliminar vencimiento"
 
 
+class VencimientoListView(LoginRequiredMixin, ListView):
+    """Panel: vencimientos pendientes de todos los expedientes del usuario."""
+    template_name = "expedientes/vencimiento_list.html"
+    context_object_name = "vencimientos"
+
+    def get_queryset(self):
+        # El dueño se alcanza a través del expediente, como en HijoPropioMixin.
+        # select_related trae el expediente en la misma consulta (evita N+1).
+        # El orden por fecha lo da Meta.ordering del modelo.
+        return Vencimiento.objects.filter(
+            expediente__owner=self.request.user,
+            estado=Vencimiento.Estado.PENDIENTE,
+        ).select_related("expediente")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        vencimientos = context["vencimientos"]
+        context["cantidad_vencidos"] = sum(1 for v in vencimientos if v.esta_vencido)
+        context["cantidad_proximos"] = sum(1 for v in vencimientos if v.vence_pronto)
+        context["dias_aviso"] = Vencimiento.DIAS_AVISO
+        return context
+
+
 class VencimientoCumplirView(LoginRequiredMixin, View):
     """Acción rápida: solo POST (un GET responde 405)."""
 
@@ -208,6 +231,9 @@ class VencimientoCumplirView(LoginRequiredMixin, View):
         vencimiento.estado = Vencimiento.Estado.CUMPLIDO
         vencimiento.save(update_fields=["estado"])
         messages.success(request, "Vencimiento marcado como cumplido.")
+        # Se compara contra un valor fijo: nunca se redirige a una URL que mande el usuario.
+        if request.POST.get("volver") == "panel":
+            return redirect("expedientes:vencimientos")
         return redirect(vencimiento.expediente)
 
 

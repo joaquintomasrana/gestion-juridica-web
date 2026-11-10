@@ -72,7 +72,7 @@
             {% for vencimiento in expediente.vencimientos.all %}
                 <li>
                     {{ vencimiento.fecha|date:"d/m/Y" }} — {{ vencimiento.descripcion }} ({{ vencimiento.get_estado_display }})
-                    {% if vencimiento.esta_vencido %}<span class="vencido">Vencido</span>{% endif %}
+                    {% if vencimiento.esta_vencido %}<span class="vencido">Vencido</span>{% elif vencimiento.vence_pronto %}<span class="proximo">Próximo</span>{% endif %}
                     <span class="acciones">
                         {% if vencimiento.estado == "pendiente" %}
                             <form method="post" action="{% url 'expedientes:vencimiento_cumplir' vencimiento.pk %}" class="en-linea">

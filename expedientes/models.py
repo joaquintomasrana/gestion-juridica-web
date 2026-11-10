@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 
 from django.conf import settings
@@ -114,9 +115,21 @@ class Vencimiento(models.Model):
     def __str__(self):
         return f"{self.fecha} — {self.descripcion}"
 
+    # Cuántos días antes se avisa que un vencimiento está cerca.
+    DIAS_AVISO = 7
+
     @property
     def esta_vencido(self):
         return self.estado == self.Estado.PENDIENTE and self.fecha < timezone.localdate()
+
+    @property
+    def vence_pronto(self):
+        """Pendiente y dentro de los próximos DIAS_AVISO días (hoy incluido)."""
+        hoy = timezone.localdate()
+        return (
+            self.estado == self.Estado.PENDIENTE
+            and hoy <= self.fecha <= hoy + timedelta(days=self.DIAS_AVISO)
+        )
 
 
 class Honorario(models.Model):

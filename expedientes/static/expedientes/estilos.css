@@ -12,6 +12,10 @@ form.en-linea button { width: auto; margin: 0; padding: 0.25rem 0.75rem; }
 
 /* Vencimientos */
 .vencido { color: #c62828; font-weight: bold; }
+.proximo { color: #b26a00; font-weight: bold; }
+/* En el panel, una franja de color a la izquierda de la fila. */
+tr.fila-vencida td:first-child { box-shadow: inset 4px 0 0 #c62828; }
+tr.fila-proxima td:first-child { box-shadow: inset 4px 0 0 #b26a00; }
 
 /* Botón para acciones destructivas (borrar). */
 button.peligro { background-color: #c62828; border-color: #c62828; }

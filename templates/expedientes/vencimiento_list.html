@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block titulo %}Vencimientos{% endblock %}
+{% block contenido %}
+
+    <div class="encabezado">
+        <h1>Vencimientos pendientes</h1>
+    </div>
+
+    {% if vencimientos %}
+        <p>
+            {% if cantidad_vencidos %}<span class="vencido">{{ cantidad_vencidos }} vencido{{ cantidad_vencidos|pluralize }}</span> · {% endif %}
+            {% if cantidad_proximos %}<span class="proximo">{{ cantidad_proximos }} en los próximos {{ dias_aviso }} días</span> · {% endif %}
+            {{ vencimientos|length }} pendiente{{ vencimientos|length|pluralize }} en total
+        </p>
+    {% endif %}
+
+    <div class="overflow-auto">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Expediente</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vencimiento in vencimientos %}
+                    <tr class="{% if vencimiento.esta_vencido %}fila-vencida{% elif vencimiento.vence_pronto %}fila-proxima{% endif %}">
+                        <td>
+                            {{ vencimiento.fecha|date:"d/m/Y" }}
+                            {% if vencimiento.esta_vencido %}
+                                <br><span class="vencido">Vencido</span>
+                            {% elif vencimiento.vence_pronto %}
+                                <br><span class="proximo">Próximo</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ vencimiento.descripcion }}</td>
+                        <td>
+                            <a href="{% url 'expedientes:detalle' vencimiento.expediente.pk %}">{{ vencimiento.expediente.caratula }}</a>
+                        </td>
+                        <td>
+                            <form method="post" action="{% url 'expedientes:vencimiento_cumplir' vencimiento.pk %}" class="en-linea">
+                                {% csrf_token %}
+                                {# Después de marcarlo, volver a este panel y no al expediente. #}
+                                <input type="hidden" name="volver" value="panel">
+                                <button type="submit" class="outline">Cumplido</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4">No tenés vencimientos pendientes.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}
