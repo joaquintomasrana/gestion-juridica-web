@@ -32,4 +32,9 @@ urlpatterns = [
     path('expediente/<int:expediente_pk>/gastos/nuevo/', views.GastoCreateView.as_view(), name='gasto_nuevo'),
     path('gastos/<int:pk>/editar/', views.GastoUpdateView.as_view(), name='gasto_editar'),
     path('gastos/<int:pk>/eliminar/', views.GastoDeleteView.as_view(), name='gasto_eliminar'),
+
+    # Adjuntos: la descarga pasa por una vista que verifica el dueño (no hay /media/ público).
+    path('expediente/<int:expediente_pk>/adjuntos/nuevo/', views.AdjuntoCreateView.as_view(), name='adjunto_nuevo'),
+    path('adjuntos/<int:pk>/eliminar/', views.AdjuntoDeleteView.as_view(), name='adjunto_eliminar'),
+    path('adjuntos/<int:pk>/descargar/', views.AdjuntoDescargarView.as_view(), name='adjunto_descargar'),
 ]

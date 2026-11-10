@@ -118,11 +118,16 @@
         <h3>Adjuntos</h3>
         <ul>
             {% for adjunto in expediente.adjuntos.all %}
-                <li>{{ adjunto.descripcion | default:adjunto.archivo.name }}</li>
+                <li>
+                    <a href="{% url 'expedientes:adjunto_descargar' adjunto.pk %}">{{ adjunto.descripcion | default:adjunto.archivo.name }}</a>
+                    - subido el {{ adjunto.subido|date:"d/m/Y" }}
+                    <a href="{% url 'expedientes:adjunto_eliminar' adjunto.pk %}">Eliminar</a>
+                </li>
             {% empty %}
                 <li>No hay adjuntos asociados a este expediente.</li>
             {% endfor %}
         </ul>
+        <a href="{% url 'expedientes:adjunto_nuevo' expediente.pk %}">Adjuntar archivo</a>
     </div>
 
     <div> 

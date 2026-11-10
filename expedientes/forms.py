@@ -1,6 +1,10 @@
 from django import forms
+from django.core.validators import FileExtensionValidator
 
-from .models import Expediente, Gasto, Honorario, Parte, PasoProcesal, Vencimiento
+from .models import ArchivoAdjunto, Expediente, Gasto, Honorario, Parte, PasoProcesal, Vencimiento
+
+EXTENSIONES_PERMITIDAS = ["pdf", "doc", "docx", "odt", "jpg", "jpeg", "png"]
+TAMANIO_MAXIMO = 5 * 1024 * 1024  # 5 MB
 
 
 class FechaInput(forms.DateInput):
@@ -74,3 +78,17 @@ class GastoForm(forms.ModelForm):
         model = Gasto
         fields = ["fecha", "monto", "moneda", "descripcion"]
         widgets = {"fecha": FechaInput()}
+
+
+class AdjuntoForm(forms.ModelForm):
+    class Meta:
+        model = ArchivoAdjunto
+        fields = ["archivo", "descripcion"]
+
+    def clean_archivo(self):
+        archivo = self.cleaned_data["archivo"]
+        # Lanza ValidationError con un mensaje claro si la extensión no está permitida.
+        FileExtensionValidator(EXTENSIONES_PERMITIDAS)(archivo)
+        if archivo.size > TAMANIO_MAXIMO:
+            raise forms.ValidationError("El archivo supera el máximo de 5 MB.")
+        return archivo

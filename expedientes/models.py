@@ -3,6 +3,8 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 
@@ -171,3 +173,11 @@ class ArchivoAdjunto(models.Model):
 
     def __str__(self):
         return self.descripcion or self.archivo.name
+
+
+@receiver(post_delete, sender=ArchivoAdjunto)
+def borrar_archivo_del_disco(sender, instance, **kwargs):
+    # Corre al eliminar un adjunto y también al eliminar su expediente (CASCADE):
+    # la base borra el registro, pero el archivo en media/ hay que borrarlo a mano.
+    if instance.archivo:
+        instance.archivo.delete(save=False)

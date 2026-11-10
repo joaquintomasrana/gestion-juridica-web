@@ -1,13 +1,18 @@
+import os
+
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.functional import cached_property
 from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Expediente, Gasto, Honorario, Parte, PasoProcesal, Vencimiento
-from .forms import ExpedienteForm, GastoForm, HonorarioForm, ParteForm, PasoProcesalForm, VencimientoForm
+from .models import ArchivoAdjunto, Expediente, Gasto, Honorario, Parte, PasoProcesal, Vencimiento
+from .forms import (
+    AdjuntoForm, ExpedienteForm, GastoForm, HonorarioForm, ParteForm, PasoProcesalForm, VencimientoForm,
+)
 from django.urls import reverse_lazy
 
 # Create your views here.
@@ -238,3 +243,40 @@ class GastoUpdateView(HijoUpdateView):
 class GastoDeleteView(HijoDeleteView):
     model = Gasto
     titulo = "Eliminar gasto"
+
+
+# --- Archivos adjuntos ---------------------------------------------------------
+
+class AdjuntoCreateView(HijoCreateView):
+    model = ArchivoAdjunto
+    form_class = AdjuntoForm
+    titulo = "Adjuntar archivo"
+    success_message = "Archivo adjuntado."
+
+
+class AdjuntoDeleteView(HijoDeleteView):
+    model = ArchivoAdjunto
+    titulo = "Eliminar adjunto"
+    # El archivo del disco lo borra la señal post_delete (models.py).
+
+
+class AdjuntoDescargarView(LoginRequiredMixin, View):
+    """Sirve el archivo a través de una vista: pide sesión y verifica el dueño.
+
+    Nunca se expone /media/ directamente: esa URL no pasaría por ningún control.
+    """
+
+    def get(self, request, pk):
+        adjunto = get_object_or_404(
+            ArchivoAdjunto, pk=pk, expediente__owner=request.user
+        )
+        try:
+            archivo = adjunto.archivo.open("rb")
+        except FileNotFoundError:
+            # El registro existe pero el archivo ya no está en el disco.
+            raise Http404("El archivo no está disponible.")
+        return FileResponse(
+            archivo,
+            as_attachment=True,
+            filename=os.path.basename(adjunto.archivo.name),
+        )

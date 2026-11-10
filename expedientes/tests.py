@@ -1,10 +1,15 @@
+import os
+import shutil
+import tempfile
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .models import Expediente, Gasto, Honorario, Parte, PasoProcesal, Vencimiento
+from .forms import TAMANIO_MAXIMO
+from .models import ArchivoAdjunto, Expediente, Gasto, Honorario, Parte, PasoProcesal, Vencimiento
 
 User = get_user_model()
 
@@ -238,3 +243,111 @@ class TotalesTests(DosUsuariosTestCase):
             {"moneda": "ARS", "total": Decimal("1500.00")},
             {"moneda": "USD", "total": Decimal("300.00")},
         ])
+
+
+# --- Fase 8A / 8B: archivos adjuntos ------------------------------------------
+
+MEDIA_DE_PRUEBA = tempfile.mkdtemp()
+
+
+@override_settings(MEDIA_ROOT=MEDIA_DE_PRUEBA)
+class AdjuntosTests(DosUsuariosTestCase):
+    """Usa una carpeta temporal para no ensuciar media/ con archivos de prueba."""
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(MEDIA_DE_PRUEBA, ignore_errors=True)
+        super().tearDownClass()
+
+    def subir(self, expediente, nombre="escrito.pdf", contenido=b"contenido de prueba"):
+        archivo = SimpleUploadedFile(nombre, contenido)
+        url = reverse("expedientes:adjunto_nuevo", args=[expediente.pk])
+        return self.client.post(url, {"archivo": archivo, "descripcion": "Escrito"})
+
+    def subir_como_beto(self):
+        """Deja un adjunto en el expediente de Beto y vuelve a loguear a Ana."""
+        self.client.force_login(self.beto)
+        self.subir(self.exp_beto)
+        self.client.force_login(self.ana)
+        return self.exp_beto.adjuntos.get()
+
+    # --- 8A: carga y eliminación ---
+
+    def test_subir_un_adjunto_propio(self):
+        self.client.force_login(self.ana)
+        self.assertRedirects(self.subir(self.exp_ana), self.exp_ana.get_absolute_url())
+        adjunto = self.exp_ana.adjuntos.get()
+        self.assertTrue(os.path.exists(adjunto.archivo.path))
+
+    def test_rechaza_extensiones_no_permitidas(self):
+        self.client.force_login(self.ana)
+        respuesta = self.subir(self.exp_ana, nombre="virus.exe")
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, "extensión")
+        self.assertFalse(ArchivoAdjunto.objects.exists())
+
+    def test_rechaza_archivos_de_mas_de_5_mb(self):
+        self.client.force_login(self.ana)
+        respuesta = self.subir(self.exp_ana, contenido=b"x" * (TAMANIO_MAXIMO + 1))
+        self.assertContains(respuesta, "El archivo supera el máximo de 5 MB.")
+        self.assertFalse(ArchivoAdjunto.objects.exists())
+
+    def test_no_puede_subir_a_un_expediente_ajeno(self):
+        self.client.force_login(self.ana)
+        self.assertEqual(self.subir(self.exp_beto).status_code, 404)
+        self.assertFalse(ArchivoAdjunto.objects.exists())
+
+    def test_eliminar_el_adjunto_borra_el_archivo_del_disco(self):
+        self.client.force_login(self.ana)
+        self.subir(self.exp_ana)
+        adjunto = self.exp_ana.adjuntos.get()
+        ruta = adjunto.archivo.path
+        url = reverse("expedientes:adjunto_eliminar", args=[adjunto.pk])
+        self.assertRedirects(self.client.post(url), self.exp_ana.get_absolute_url())
+        self.assertFalse(os.path.exists(ruta))
+
+    def test_eliminar_el_expediente_borra_los_archivos_del_disco(self):
+        self.client.force_login(self.ana)
+        self.subir(self.exp_ana)
+        ruta = self.exp_ana.adjuntos.get().archivo.path
+        self.client.post(reverse("expedientes:eliminar", args=[self.exp_ana.pk]))
+        self.assertFalse(os.path.exists(ruta))
+
+    def test_no_puede_eliminar_un_adjunto_ajeno(self):
+        adjunto = self.subir_como_beto()
+        url = reverse("expedientes:adjunto_eliminar", args=[adjunto.pk])
+        self.assertEqual(self.client.post(url).status_code, 404)
+        self.assertTrue(os.path.exists(adjunto.archivo.path))
+
+    # --- 8B: descarga protegida ---
+
+    def test_descargar_un_adjunto_propio(self):
+        self.client.force_login(self.ana)
+        self.subir(self.exp_ana)
+        adjunto = self.exp_ana.adjuntos.get()
+        respuesta = self.client.get(reverse("expedientes:adjunto_descargar", args=[adjunto.pk]))
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertIn("attachment", respuesta["Content-Disposition"])
+        self.assertEqual(b"".join(respuesta.streaming_content), b"contenido de prueba")
+
+    def test_no_puede_descargar_un_adjunto_ajeno(self):
+        adjunto = self.subir_como_beto()
+        url = reverse("expedientes:adjunto_descargar", args=[adjunto.pk])
+        self.assertEqual(self.client.get(url).status_code, 404)
+
+        self.client.logout()
+        self.assertRedirects(self.client.get(url), f"{reverse('login')}?next={url}")
+
+    def test_archivo_faltante_en_disco_responde_404(self):
+        self.client.force_login(self.ana)
+        self.subir(self.exp_ana)
+        adjunto = self.exp_ana.adjuntos.get()
+        os.remove(adjunto.archivo.path)  # simula el disco efímero de Render
+        url = reverse("expedientes:adjunto_descargar", args=[adjunto.pk])
+        self.assertEqual(self.client.get(url).status_code, 404)
+
+    def test_media_no_es_publico(self):
+        self.client.force_login(self.ana)
+        self.subir(self.exp_ana)
+        adjunto = self.exp_ana.adjuntos.get()
+        self.assertEqual(self.client.get(f"/media/{adjunto.archivo.name}").status_code, 404)
