@@ -25,55 +25,93 @@
         <h3>Partes</h3>
         <ul>
             {% for parte in expediente.partes.all %}
-                <li>{{ parte.nombre }} - {{ parte.get_tipo_display }}</li>
+                <li>
+                    {{ parte.nombre }} - {{ parte.get_tipo_display }}
+                    <a href="{% url 'expedientes:parte_editar' parte.pk %}">Editar</a>
+                    <a href="{% url 'expedientes:parte_eliminar' parte.pk %}">Eliminar</a>
+                </li>
             {% empty %}
                 <li>No hay partes asociadas a este expediente.</li>
             {% endfor %}
         </ul>
+        <a href="{% url 'expedientes:parte_nueva' expediente.pk %}">Agregar parte</a>
     </div>
 
     <div>
         <h3>Pasos procesales</h3>
         <ul>
             {% for paso in expediente.pasos.all %}
-                <li>{{ paso.fecha }} - {{ paso.descripcion }}</li>
+                <li>
+                    {{ paso.fecha }} - {{ paso.descripcion }}
+                    <a href="{% url 'expedientes:paso_editar' paso.pk %}">Editar</a>
+                    <a href="{% url 'expedientes:paso_eliminar' paso.pk %}">Eliminar</a>
+                </li>
             {% empty %}
                 <li>No hay pasos procesales asociados a este expediente.</li>
             {% endfor %}
         </ul>
+        <a href="{% url 'expedientes:paso_nuevo' expediente.pk %}">Agregar paso procesal</a>
     </div>
 
     <div>
         <h3>Vencimientos</h3>
         <ul>
             {% for vencimiento in expediente.vencimientos.all %}
-                <li>{{ vencimiento.fecha }} - {{ vencimiento.descripcion }} ({{ vencimiento.get_estado_display }})</li>
+                <li>
+                    {{ vencimiento.fecha }} - {{ vencimiento.descripcion }} ({{ vencimiento.get_estado_display }})
+                    {% if vencimiento.esta_vencido %}<strong>Vencido</strong>{% endif %}
+                    {% if vencimiento.estado == "pendiente" %}
+                        <form method="post" action="{% url 'expedientes:vencimiento_cumplir' vencimiento.pk %}" style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit">Cumplido</button>
+                        </form>
+                    {% endif %}
+                    <a href="{% url 'expedientes:vencimiento_editar' vencimiento.pk %}">Editar</a>
+                    <a href="{% url 'expedientes:vencimiento_eliminar' vencimiento.pk %}">Eliminar</a>
+                </li>
             {% empty %}
                 <li>No hay vencimientos asociados a este expediente.</li>
             {% endfor %}
         </ul>
+        <a href="{% url 'expedientes:vencimiento_nuevo' expediente.pk %}">Agregar vencimiento</a>
     </div>
 
     <div>
         <h3>Honorarios</h3>
         <ul>
             {% for honorario in expediente.honorarios.all %}
-                <li>{{ honorario.fecha }} - {{ honorario.monto }} {{ honorario.moneda }} - {{ honorario.concepto | default:"Sin concepto"}}</li>
+                <li>
+                    {{ honorario.fecha }} - {{ honorario.monto }} {{ honorario.moneda }} - {{ honorario.concepto | default:"Sin concepto"}}
+                    <a href="{% url 'expedientes:honorario_editar' honorario.pk %}">Editar</a>
+                    <a href="{% url 'expedientes:honorario_eliminar' honorario.pk %}">Eliminar</a>
+                </li>
             {% empty %}
                 <li>No hay honorarios asociados a este expediente.</li>
             {% endfor %}
         </ul>
+        {% for fila in totales_honorarios %}
+            <p>Total en {{ fila.moneda }}: {{ fila.total }}</p>
+        {% endfor %}
+        <a href="{% url 'expedientes:honorario_nuevo' expediente.pk %}">Agregar honorario</a>
     </div>
 
     <div>
         <h3>Gastos</h3>
         <ul>
             {% for gasto in expediente.gastos.all %}
-                <li>{{ gasto.fecha }} - {{ gasto.monto }} {{ gasto.moneda }} - {{ gasto.descripcion }}</li>
+                <li>
+                    {{ gasto.fecha }} - {{ gasto.monto }} {{ gasto.moneda }} - {{ gasto.descripcion }}
+                    <a href="{% url 'expedientes:gasto_editar' gasto.pk %}">Editar</a>
+                    <a href="{% url 'expedientes:gasto_eliminar' gasto.pk %}">Eliminar</a>
+                </li>
             {% empty %}
                 <li>No hay gastos asociados a este expediente.</li>
             {% endfor %}
         </ul>
+        {% for fila in totales_gastos %}
+            <p>Total en {{ fila.moneda }}: {{ fila.total }}</p>
+        {% endfor %}
+        <a href="{% url 'expedientes:gasto_nuevo' expediente.pk %}">Agregar gasto</a>
     </div>
 
     <div>
