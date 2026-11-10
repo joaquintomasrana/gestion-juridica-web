@@ -1,69 +1,62 @@
 {% extends "base.html" %}
-{% block titulo %}Listado de expedientes {% endblock %}
+{% block titulo %}Expedientes{% endblock %}
 {% block contenido %}
-   
-    <div> 
-        <a href="{% url 'expedientes:nuevo' %}">Crear nuevo expediente</a>
+
+    <div class="encabezado">
+        <h1>Expedientes</h1>
+        <a href="{% url 'expedientes:nuevo' %}" role="button">Nuevo expediente</a>
     </div>
 
-    <div>
-        <form method="get">
-            <input type="text" name="q" placeholder="Buscar..." value="{{ request.GET.q }}">
-
-            <select name="estado">
-                <option value="">Todos</option>
-                
+    <form method="get">
+        {# role="group" es de Pico: pone buscador, filtro y botón en una sola fila. #}
+        <fieldset role="group">
+            <input type="search" name="q" placeholder="Buscar por número, carátula, juzgado..." value="{{ request.GET.q }}" aria-label="Buscar">
+            <select name="estado" aria-label="Estado">
+                <option value="">Todos los estados</option>
                 {% for estado_interno, estado_visible in estados %}
-                    <option value="{{ estado_interno }}" {% if estado_interno == request.GET.estado %} selected {% endif %}>{{ estado_visible }}</option>
+                    <option value="{{ estado_interno }}" {% if estado_interno == request.GET.estado %}selected{% endif %}>{{ estado_visible }}</option>
                 {% endfor %}
-                
-
-            </select>   
-
-
-
+            </select>
             <button type="submit">Buscar</button>
-        </form>
+        </fieldset>
+    </form>
+
+    {# overflow-auto (Pico): si la tabla no entra en el celular, se desplaza ella y no toda la página. #}
+    <div class="overflow-auto">
+        <table class="striped">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Carátula</th>
+                    <th>Estado</th>
+                    <th>Última actualización</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expediente in expedientes %}
+                    <tr>
+                        <td>{{ expediente.numero|default:"s/n" }}</td>
+                        <td><a href="{% url 'expedientes:detalle' expediente.pk %}">{{ expediente.caratula }}</a></td>
+                        <td>{{ expediente.get_estado_display }}</td>
+                        <td>{{ expediente.actualizado|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4">No hay expedientes para mostrar.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
-
-    <div> 
-        <h1>Listado de expedientes</h1>
-    </div>
-
-
-    {% for expediente in expedientes %}
-
-    
-        <div>
-            <h3>
-                <a href="{% url 'expedientes:detalle' expediente.pk %}">{{ expediente.caratula }}</a>            
-            </h3>
-            <p>{{ expediente.numero | default:"Sin número asignado"}}</p>
-            <p>Fecha de creación: {{ expediente.creado }}</p>
-            <p>Fecha de ultima actualización: {{ expediente.actualizado }}</p>
-            <p>{{ expediente.get_estado_display }}</p>
-        </div>
-    {% empty %}
-        <p>No hay expedientes disponibles.</p>
-    {% endfor %}
-
-    <div>
-        {% if is_paginated %}
-            <div>
-                {% if page_obj.has_previous %}
-                    <a href="{% querystring page=page_obj.previous_page_number %}">Anterior</a>
-                {% endif %}
-                
-                <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-                
-                {% if page_obj.has_next %}
-                    <a href="{% querystring page=page_obj.next_page_number %}">Siguiente</a>
-                {% endif %}
-            </div>
-        {% endif %}
-    </div>
-
-
+    {% if is_paginated %}
+        <nav class="paginacion" aria-label="Paginación">
+            {% if page_obj.has_previous %}
+                <a href="{% querystring page=page_obj.previous_page_number %}">« Anterior</a>
+            {% endif %}
+            <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="{% querystring page=page_obj.next_page_number %}">Siguiente »</a>
+            {% endif %}
+        </nav>
+    {% endif %}
 
 {% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block titulo %}No encontrado{% endblock %}
+{% block contenido %}
+    <article>
+        <h1>No encontramos lo que buscás</h1>
+        {# Mismo mensaje para "no existe" y "es de otro usuario": no se revela cuál de los dos es. #}
+        <p>La página no existe o no tenés acceso a ella.</p>
+        <a href="{% url 'expedientes:lista' %}" role="button">Volver al listado de expedientes</a>
+    </article>
+{% endblock %}

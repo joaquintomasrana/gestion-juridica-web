@@ -1,0 +1,46 @@
+/* Estilos propios. Pico.css pone la base; acá solo lo que Pico no trae. */
+
+/* Formularios que van dentro de una línea de texto (Salir, Cumplido). */
+form.en-linea { display: inline; margin: 0; }
+form.en-linea button { width: auto; margin: 0; padding: 0.25rem 0.75rem; }
+
+/* Mensajes de Django: el color del borde distingue éxito de error. */
+.mensaje { padding: 0.75rem 1rem; margin-bottom: 1rem; border-left: 4px solid; }
+.mensaje-success { border-color: #2e7d32; }
+.mensaje-error { border-color: #c62828; }
+.mensaje-warning { border-color: #b26a00; }
+
+/* Vencimientos */
+.vencido { color: #c62828; font-weight: bold; }
+
+/* Botón para acciones destructivas (borrar). */
+button.peligro { background-color: #c62828; border-color: #c62828; }
+
+/* Fila de acciones chicas al lado de cada ítem (Editar, Eliminar...). */
+.acciones { font-size: 0.875rem; white-space: nowrap; }
+.acciones a, .acciones form { margin-left: 0.5rem; }
+
+/* Listas de ítems dentro de cada sección del detalle. */
+.items { padding-left: 0; }
+.items li { list-style: none; padding: 0.5rem 0; border-bottom: 1px solid var(--pico-muted-border-color); }
+.items li:last-child { border-bottom: none; }
+
+/* Datos del expediente: etiqueta y valor en dos columnas; en el celular, una debajo de otra. */
+.datos { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; margin: 0; }
+.datos dt { font-weight: bold; }
+.datos dd { margin: 0; }
+@media (max-width: 576px) {
+    .datos { grid-template-columns: 1fr; }
+    .datos dd { margin-bottom: 0.5rem; }
+}
+
+/* Encabezado de página con título a la izquierda y botón a la derecha. */
+.encabezado { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.encabezado h1, .encabezado h2 { margin: 0; }
+
+/* Paginación */
+.paginacion { display: flex; justify-content: center; align-items: center; gap: 1rem; }
+
+/* Los totales por moneda, un poco separados de la lista. */
+.totales { margin: 0.5rem 0 1rem; }
+.totales p { margin: 0; }

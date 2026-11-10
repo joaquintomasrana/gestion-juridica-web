@@ -1,38 +1,44 @@
-<!DOCTYPE html> 
-<html lang="es"> 
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="utf-8">
-    <title> 
-    {% block titulo %}
-    {% endblock %}
-    </title>
+    {# Sin esta línea, el celular muestra la página "de escritorio" achicada. #}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block titulo %}{% endblock %} — Gestión Jurídica</title>
+    {# Pico se sirve desde el proyecto (no por CDN): funciona sin internet. #}
+    <link rel="stylesheet" href="{% static 'expedientes/pico.min.css' %}">
+    <link rel="stylesheet" href="{% static 'expedientes/estilos.css' %}">
 </head>
-    
-    
-
-    
 <body>
-    <nav>
-        <strong>Gestión Jurídica</strong>
-        {% if user.is_authenticated %}
-            <a href="{% url 'expedientes:lista' %}">Expedientes</a>
-            <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit">Cerrar sesión</button>
-            </form>
+    <header class="container">
+        <nav>
+            <ul>
+                <li><strong>Gestión Jurídica</strong></li>
+            </ul>
+            <ul>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'expedientes:lista' %}">Expedientes</a></li>
+                    <li>
+                        <form method="post" action="{% url 'logout' %}" class="en-linea">
+                            {% csrf_token %}
+                            <button type="submit" class="secondary outline">Salir ({{ user.username }})</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li><a href="{% url 'login' %}">Ingresar</a></li>
+                    <li><a href="{% url 'registro' %}">Crear cuenta</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
 
-        {% else %}
-            <a href="{% url 'login' %}">Iniciar sesión</a>
-            <a href="{% url 'registro' %}">Registrarse</a>
-        {% endif %}
-    </nav>
+    <main class="container">
+        {% for mensaje in messages %}
+            <article class="mensaje mensaje-{{ mensaje.tags }}" role="status">{{ mensaje }}</article>
+        {% endfor %}
 
-    {% for mensaje in messages %}
-        <p>{{ mensaje }}</p>
-    {% endfor %}
-
-    {% block contenido %}
-    {% endblock %}
+        {% block contenido %}{% endblock %}
+    </main>
 </body>
-
 </html>

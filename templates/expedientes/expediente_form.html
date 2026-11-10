@@ -1,28 +1,22 @@
 {% extends "base.html" %}
-{% block titulo %}
-{% if object %}
-  Modificar expediente
-{% else %}
-    Nuevo expediente
-{% endif %}
-{% endblock %}
+{% block titulo %}{% if object %}Modificar expediente{% else %}Nuevo expediente{% endif %}{% endblock %}
 
 {% block contenido %}
-    {% if object %}
-         <h2>Modificar expediente</h2>
-    {% else %}
-        <h2>Nuevo expediente</h2>
-    {% endif %}
-   
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">
-        {% if object %}
-            Guardar cambios
-        {% else %}
-            Crear expediente
-        {% endif %}
-        </button>
-    </form>
+    <article>
+        <header><h2>{% if object %}Modificar expediente{% else %}Nuevo expediente{% endif %}</h2></header>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">{% if object %}Guardar cambios{% else %}Crear expediente{% endif %}</button>
+        </form>
+
+        <footer>
+            {% if object %}
+                <a href="{% url 'expedientes:detalle' object.pk %}">Cancelar y volver al expediente</a>
+            {% else %}
+                <a href="{% url 'expedientes:lista' %}">Cancelar y volver al listado</a>
+            {% endif %}
+        </footer>
+    </article>
 {% endblock %}

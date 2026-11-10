@@ -1,20 +1,21 @@
 {% extends "base.html" %}
 {% block titulo %}{{ view.titulo }}{% endblock %}
 {% block contenido %}
+    <article>
+        <header>
+            <h2>{{ view.titulo }}</h2>
+            <p>Expediente: {{ expediente.caratula }}</p>
+        </header>
 
-    <div>
-        <h2>{{ view.titulo }}</h2>
-        <p>Expediente: {{ expediente.caratula }}</p>
-    </div>
+        {# multipart solo si el formulario tiene archivos (adjuntos): sin esto el archivo no llega. #}
+        <form method="post" {% if form.is_multipart %}enctype="multipart/form-data"{% endif %}>
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Guardar</button>
+        </form>
 
-    <form method="post" {% if form.is_multipart %}enctype="multipart/form-data"{% endif %}>
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Guardar</button>
-    </form>
-
-    <div>
-        <a href="{% url 'expedientes:detalle' expediente.pk %}">Cancelar y volver al expediente</a>
-    </div>
-
+        <footer>
+            <a href="{% url 'expedientes:detalle' expediente.pk %}">Cancelar y volver al expediente</a>
+        </footer>
+    </article>
 {% endblock %}

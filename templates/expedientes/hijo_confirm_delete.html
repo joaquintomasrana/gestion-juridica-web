@@ -1,20 +1,19 @@
 {% extends "base.html" %}
 {% block titulo %}{{ view.titulo }}{% endblock %}
 {% block contenido %}
+    <article>
+        <header>
+            <h2>{{ view.titulo }}</h2>
+            <p>Vas a eliminar: <strong>{{ object }}</strong></p>
+            <p>Expediente: {{ expediente.caratula }}. Esta acción no se puede deshacer.</p>
+        </header>
 
-    <div>
-        <h2>{{ view.titulo }}</h2>
-        <p>Vas a eliminar: <strong>{{ object }}</strong></p>
-        <p>Expediente: {{ expediente.caratula }}. Esta acción no se puede deshacer.</p>
-    </div>
-
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">Confirmar borrado</button>
-    </form>
-
-    <div>
-        <a href="{% url 'expedientes:detalle' expediente.pk %}">Cancelar y volver al expediente</a>
-    </div>
-
+        <footer>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="peligro">Confirmar borrado</button>
+            </form>
+            <a href="{% url 'expedientes:detalle' expediente.pk %}">Cancelar y volver al expediente</a>
+        </footer>
+    </article>
 {% endblock %}

@@ -4,6 +4,7 @@ import tempfile
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.contrib.staticfiles import finders
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -243,6 +244,25 @@ class TotalesTests(DosUsuariosTestCase):
             {"moneda": "ARS", "total": Decimal("1500.00")},
             {"moneda": "USD", "total": Decimal("300.00")},
         ])
+
+
+# --- Fase 9: estilo y páginas de error -----------------------------------------
+
+class EstiloTests(DosUsuariosTestCase):
+    def test_la_pagina_404_es_la_propia(self):
+        # Los tests corren con DEBUG=False, así que se usa templates/404.html.
+        self.client.force_login(self.ana)
+        respuesta = self.client.get(reverse("expedientes:detalle", args=[self.exp_beto.pk]))
+        self.assertContains(respuesta, "No encontramos lo que buscás", status_code=404)
+        self.assertNotContains(respuesta, "Lopez c/ Diaz", status_code=404)
+
+    def test_los_estilos_existen_y_se_enlazan(self):
+        for ruta in ["expedientes/pico.min.css", "expedientes/estilos.css"]:
+            with self.subTest(ruta=ruta):
+                self.assertIsNotNone(finders.find(ruta))
+        respuesta = self.client.get(reverse("login"))
+        self.assertContains(respuesta, "pico.min.css")
+        self.assertContains(respuesta, 'name="viewport"')
 
 
 # --- Fase 8A / 8B: archivos adjuntos ------------------------------------------

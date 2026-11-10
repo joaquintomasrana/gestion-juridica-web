@@ -1,11 +1,13 @@
 {% extends "base.html" %}
-{% block titulo %}Registro{% endblock %}
+{% block titulo %}Crear cuenta{% endblock %}
 {% block contenido %}
-    <h2>Registro</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Registrarse</button>
-    </form>
-    <p>¿Ya tenés cuenta? <a href="{% url 'login' %}">Iniciar sesión</a></p>
+    <article>
+        <header><h2>Crear cuenta</h2></header>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Crear cuenta</button>
+        </form>
+        <footer>¿Ya tenés cuenta? <a href="{% url 'login' %}">Ingresar</a></footer>
+    </article>
 {% endblock %}

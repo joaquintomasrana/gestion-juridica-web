@@ -1,146 +1,168 @@
 {% extends "base.html" %}
-{% block titulo %}Detalle del expediente {% endblock %}
+{% block titulo %}{{ expediente.caratula }}{% endblock %}
 {% block contenido %}
-   
 
+    <p><a href="{% url 'expedientes:lista' %}">« Volver al listado</a></p>
 
-    <div> 
-        <h1>Detalle del expediente</h1>
-    </div>
+    <article>
+        <header class="encabezado">
+            <h2>{{ expediente.caratula }}</h2>
+            <span>
+                <a href="{% url 'expedientes:editar' expediente.pk %}" role="button" class="outline">Editar</a>
+                <a href="{% url 'expedientes:eliminar' expediente.pk %}" role="button" class="secondary outline">Eliminar</a>
+            </span>
+        </header>
+        <dl class="datos">
+            <dt>Número</dt><dd>{{ expediente.numero|default:"Sin número asignado" }}</dd>
+            <dt>Estado</dt><dd>{{ expediente.get_estado_display }}</dd>
+            <dt>Fuero / juzgado</dt><dd>{{ expediente.fuero_juzgado|default:"Sin especificar" }}</dd>
+            <dt>Tipo de proceso</dt><dd>{{ expediente.tipo_proceso|default:"Sin especificar" }}</dd>
+            <dt>Fecha de inicio</dt><dd>{{ expediente.fecha_inicio|date:"d/m/Y"|default:"Sin especificar" }}</dd>
+            <dt>Observaciones</dt><dd>{{ expediente.observaciones|default:"Sin observaciones"|linebreaksbr }}</dd>
+        </dl>
+        <footer><small>Creado el {{ expediente.creado|date:"d/m/Y H:i" }} · Última actualización: {{ expediente.actualizado|date:"d/m/Y H:i" }}</small></footer>
+    </article>
 
-
-    <div>
-        <h3>{{ expediente.caratula }}</h3>
-        <p>Número: {{ expediente.numero | default:"Sin número asignado"}}</p>
-        <p>Estado: {{ expediente.get_estado_display }}</p>
-        <p>Fuero / juzgado: {{ expediente.fuero_juzgado | default:"Sin especificar"}}</p>
-        <p>Tipo de proceso: {{ expediente.tipo_proceso | default:"Sin especificar"}}</p>
-        <p>Fecha de inicio: {{ expediente.fecha_inicio | default:"Sin especificar"}}</p>
-        <p>Observaciones: {{ expediente.observaciones | default:"Sin observaciones"}}</p>
-        <p>Fecha de creación: {{ expediente.creado }}</p>
-        <p>Fecha de ultima actualización: {{ expediente.actualizado }}</p>
-     </div>
-    
-    <div> 
-        <h3>Partes</h3>
-        <ul>
+    <article>
+        <header class="encabezado">
+            <h3>Partes</h3>
+            <a href="{% url 'expedientes:parte_nueva' expediente.pk %}">+ Agregar parte</a>
+        </header>
+        <ul class="items">
             {% for parte in expediente.partes.all %}
                 <li>
-                    {{ parte.nombre }} - {{ parte.get_tipo_display }}
-                    <a href="{% url 'expedientes:parte_editar' parte.pk %}">Editar</a>
-                    <a href="{% url 'expedientes:parte_eliminar' parte.pk %}">Eliminar</a>
+                    {{ parte.nombre }} — {{ parte.get_tipo_display }}
+                    <span class="acciones">
+                        <a href="{% url 'expedientes:parte_editar' parte.pk %}">Editar</a>
+                        <a href="{% url 'expedientes:parte_eliminar' parte.pk %}">Eliminar</a>
+                    </span>
                 </li>
             {% empty %}
                 <li>No hay partes asociadas a este expediente.</li>
             {% endfor %}
         </ul>
-        <a href="{% url 'expedientes:parte_nueva' expediente.pk %}">Agregar parte</a>
-    </div>
+    </article>
 
-    <div>
-        <h3>Pasos procesales</h3>
-        <ul>
+    <article>
+        <header class="encabezado">
+            <h3>Pasos procesales</h3>
+            <a href="{% url 'expedientes:paso_nuevo' expediente.pk %}">+ Agregar paso procesal</a>
+        </header>
+        <ul class="items">
             {% for paso in expediente.pasos.all %}
                 <li>
-                    {{ paso.fecha }} - {{ paso.descripcion }}
-                    <a href="{% url 'expedientes:paso_editar' paso.pk %}">Editar</a>
-                    <a href="{% url 'expedientes:paso_eliminar' paso.pk %}">Eliminar</a>
+                    {{ paso.fecha|date:"d/m/Y" }} — {{ paso.descripcion }}
+                    <span class="acciones">
+                        <a href="{% url 'expedientes:paso_editar' paso.pk %}">Editar</a>
+                        <a href="{% url 'expedientes:paso_eliminar' paso.pk %}">Eliminar</a>
+                    </span>
                 </li>
             {% empty %}
                 <li>No hay pasos procesales asociados a este expediente.</li>
             {% endfor %}
         </ul>
-        <a href="{% url 'expedientes:paso_nuevo' expediente.pk %}">Agregar paso procesal</a>
-    </div>
+    </article>
 
-    <div>
-        <h3>Vencimientos</h3>
-        <ul>
+    <article>
+        <header class="encabezado">
+            <h3>Vencimientos</h3>
+            <a href="{% url 'expedientes:vencimiento_nuevo' expediente.pk %}">+ Agregar vencimiento</a>
+        </header>
+        <ul class="items">
             {% for vencimiento in expediente.vencimientos.all %}
                 <li>
-                    {{ vencimiento.fecha }} - {{ vencimiento.descripcion }} ({{ vencimiento.get_estado_display }})
-                    {% if vencimiento.esta_vencido %}<strong>Vencido</strong>{% endif %}
-                    {% if vencimiento.estado == "pendiente" %}
-                        <form method="post" action="{% url 'expedientes:vencimiento_cumplir' vencimiento.pk %}" style="display:inline">
-                            {% csrf_token %}
-                            <button type="submit">Cumplido</button>
-                        </form>
-                    {% endif %}
-                    <a href="{% url 'expedientes:vencimiento_editar' vencimiento.pk %}">Editar</a>
-                    <a href="{% url 'expedientes:vencimiento_eliminar' vencimiento.pk %}">Eliminar</a>
+                    {{ vencimiento.fecha|date:"d/m/Y" }} — {{ vencimiento.descripcion }} ({{ vencimiento.get_estado_display }})
+                    {% if vencimiento.esta_vencido %}<span class="vencido">Vencido</span>{% endif %}
+                    <span class="acciones">
+                        {% if vencimiento.estado == "pendiente" %}
+                            <form method="post" action="{% url 'expedientes:vencimiento_cumplir' vencimiento.pk %}" class="en-linea">
+                                {% csrf_token %}
+                                <button type="submit" class="outline">Cumplido</button>
+                            </form>
+                        {% endif %}
+                        <a href="{% url 'expedientes:vencimiento_editar' vencimiento.pk %}">Editar</a>
+                        <a href="{% url 'expedientes:vencimiento_eliminar' vencimiento.pk %}">Eliminar</a>
+                    </span>
                 </li>
             {% empty %}
                 <li>No hay vencimientos asociados a este expediente.</li>
             {% endfor %}
         </ul>
-        <a href="{% url 'expedientes:vencimiento_nuevo' expediente.pk %}">Agregar vencimiento</a>
-    </div>
+    </article>
 
-    <div>
-        <h3>Honorarios</h3>
-        <ul>
+    <article>
+        <header class="encabezado">
+            <h3>Honorarios</h3>
+            <a href="{% url 'expedientes:honorario_nuevo' expediente.pk %}">+ Agregar honorario</a>
+        </header>
+        <ul class="items">
             {% for honorario in expediente.honorarios.all %}
                 <li>
-                    {{ honorario.fecha }} - {{ honorario.monto }} {{ honorario.moneda }} - {{ honorario.concepto | default:"Sin concepto"}}
-                    <a href="{% url 'expedientes:honorario_editar' honorario.pk %}">Editar</a>
-                    <a href="{% url 'expedientes:honorario_eliminar' honorario.pk %}">Eliminar</a>
+                    {{ honorario.fecha|date:"d/m/Y" }} — {{ honorario.monto }} {{ honorario.moneda }} — {{ honorario.concepto|default:"Sin concepto" }}
+                    <span class="acciones">
+                        <a href="{% url 'expedientes:honorario_editar' honorario.pk %}">Editar</a>
+                        <a href="{% url 'expedientes:honorario_eliminar' honorario.pk %}">Eliminar</a>
+                    </span>
                 </li>
             {% empty %}
                 <li>No hay honorarios asociados a este expediente.</li>
             {% endfor %}
         </ul>
-        {% for fila in totales_honorarios %}
-            <p>Total en {{ fila.moneda }}: {{ fila.total }}</p>
-        {% endfor %}
-        <a href="{% url 'expedientes:honorario_nuevo' expediente.pk %}">Agregar honorario</a>
-    </div>
+        {% if totales_honorarios %}
+            <div class="totales">
+                {% for fila in totales_honorarios %}
+                    <p><strong>Total en {{ fila.moneda }}: {{ fila.total }}</strong></p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </article>
 
-    <div>
-        <h3>Gastos</h3>
-        <ul>
+    <article>
+        <header class="encabezado">
+            <h3>Gastos</h3>
+            <a href="{% url 'expedientes:gasto_nuevo' expediente.pk %}">+ Agregar gasto</a>
+        </header>
+        <ul class="items">
             {% for gasto in expediente.gastos.all %}
                 <li>
-                    {{ gasto.fecha }} - {{ gasto.monto }} {{ gasto.moneda }} - {{ gasto.descripcion }}
-                    <a href="{% url 'expedientes:gasto_editar' gasto.pk %}">Editar</a>
-                    <a href="{% url 'expedientes:gasto_eliminar' gasto.pk %}">Eliminar</a>
+                    {{ gasto.fecha|date:"d/m/Y" }} — {{ gasto.monto }} {{ gasto.moneda }} — {{ gasto.descripcion }}
+                    <span class="acciones">
+                        <a href="{% url 'expedientes:gasto_editar' gasto.pk %}">Editar</a>
+                        <a href="{% url 'expedientes:gasto_eliminar' gasto.pk %}">Eliminar</a>
+                    </span>
                 </li>
             {% empty %}
                 <li>No hay gastos asociados a este expediente.</li>
             {% endfor %}
         </ul>
-        {% for fila in totales_gastos %}
-            <p>Total en {{ fila.moneda }}: {{ fila.total }}</p>
-        {% endfor %}
-        <a href="{% url 'expedientes:gasto_nuevo' expediente.pk %}">Agregar gasto</a>
-    </div>
+        {% if totales_gastos %}
+            <div class="totales">
+                {% for fila in totales_gastos %}
+                    <p><strong>Total en {{ fila.moneda }}: {{ fila.total }}</strong></p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </article>
 
-    <div>
-        <h3>Adjuntos</h3>
-        <ul>
+    <article>
+        <header class="encabezado">
+            <h3>Adjuntos</h3>
+            <a href="{% url 'expedientes:adjunto_nuevo' expediente.pk %}">+ Adjuntar archivo</a>
+        </header>
+        <ul class="items">
             {% for adjunto in expediente.adjuntos.all %}
                 <li>
-                    <a href="{% url 'expedientes:adjunto_descargar' adjunto.pk %}">{{ adjunto.descripcion | default:adjunto.archivo.name }}</a>
-                    - subido el {{ adjunto.subido|date:"d/m/Y" }}
-                    <a href="{% url 'expedientes:adjunto_eliminar' adjunto.pk %}">Eliminar</a>
+                    {# La descarga pasa por una vista que verifica el dueño (nunca /media/ directo). #}
+                    <a href="{% url 'expedientes:adjunto_descargar' adjunto.pk %}">{{ adjunto.descripcion|default:adjunto.archivo.name }}</a>
+                    <small>— subido el {{ adjunto.subido|date:"d/m/Y" }}</small>
+                    <span class="acciones">
+                        <a href="{% url 'expedientes:adjunto_eliminar' adjunto.pk %}">Eliminar</a>
+                    </span>
                 </li>
             {% empty %}
                 <li>No hay adjuntos asociados a este expediente.</li>
             {% endfor %}
         </ul>
-        <a href="{% url 'expedientes:adjunto_nuevo' expediente.pk %}">Adjuntar archivo</a>
-    </div>
-
-    <div> 
-        <a href="{% url 'expedientes:editar' expediente.pk %}">Editar expediente</a> 
-    </div>
-
-    <div> 
-        <a href="{% url 'expedientes:eliminar' expediente.pk %}">Eliminar expediente</a> 
-    </div>
-
-    <div> 
-        <a href="{% url 'expedientes:lista' %}">Volver al listado de expedientes</a>
-    </div>
-
+    </article>
 
 {% endblock %}
