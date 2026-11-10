@@ -9,6 +9,7 @@
 .env.*
 !.env.example
 hoja_de_ruta.md
+apuntes_defensa.md
 
 
 # --- Entorno virtual ---
