@@ -347,12 +347,121 @@ class EstiloTests(DosUsuariosTestCase):
         self.assertNotContains(respuesta, "Lopez c/ Diaz", status_code=404)
 
     def test_los_estilos_existen_y_se_enlazan(self):
-        for ruta in ["expedientes/pico.min.css", "expedientes/estilos.css"]:
+        rutas = [
+            "expedientes/pico.min.css",
+            "expedientes/estilos.css",
+            "expedientes/fuentes/ibm-plex-sans-latin-wght.woff2",
+        ]
+        for ruta in rutas:
             with self.subTest(ruta=ruta):
                 self.assertIsNotNone(finders.find(ruta))
         respuesta = self.client.get(reverse("login"))
         self.assertContains(respuesta, "pico.min.css")
         self.assertContains(respuesta, 'name="viewport"')
+        # Tema claro fijo: la paleta no debe mezclarse con el modo oscuro de Pico.
+        self.assertContains(respuesta, 'data-theme="light"')
+
+
+# --- Cambios posteriores: filtro de activos y observaciones de los pasos ------
+
+class FiltroEstadoTests(DosUsuariosTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()  # exp_ana ("Gomez c/ Perez") queda activo
+        Expediente.objects.create(
+            owner=cls.ana, caratula="Ruiz c/ Sosa", estado=Expediente.Estado.ARCHIVADO
+        )
+        Expediente.objects.create(
+            owner=cls.ana, caratula="Vera c/ Paz", estado=Expediente.Estado.CERRADO
+        )
+
+    def setUp(self):
+        self.client.force_login(self.ana)
+
+    def ver(self, **parametros):
+        return self.client.get(reverse("expedientes:lista"), parametros)
+
+    def test_al_entrar_muestra_solo_los_activos(self):
+        respuesta = self.ver()
+        self.assertContains(respuesta, "Gomez c/ Perez")
+        self.assertNotContains(respuesta, "Ruiz c/ Sosa")
+        self.assertNotContains(respuesta, "Vera c/ Paz")
+
+    def test_todos_muestra_todos_los_estados(self):
+        respuesta = self.ver(estado="todos")
+        for caratula in ["Gomez c/ Perez", "Ruiz c/ Sosa", "Vera c/ Paz"]:
+            with self.subTest(caratula=caratula):
+                self.assertContains(respuesta, caratula)
+
+    def test_filtrar_por_un_estado(self):
+        respuesta = self.ver(estado="archivado")
+        self.assertContains(respuesta, "Ruiz c/ Sosa")
+        self.assertNotContains(respuesta, "Gomez c/ Perez")
+
+    def test_la_busqueda_respeta_el_filtro_por_defecto(self):
+        self.assertNotContains(self.ver(q="Ruiz"), "Ruiz c/ Sosa")
+        self.assertContains(self.ver(q="Ruiz", estado="todos"), "Ruiz c/ Sosa")
+
+    def test_todos_sigue_sin_mostrar_expedientes_ajenos(self):
+        self.assertNotContains(self.ver(estado="todos"), "Lopez c/ Diaz")
+
+
+class EstadoVencimientosDetalleTests(DosUsuariosTestCase):
+    def test_cada_vencimiento_muestra_su_estado_con_su_color(self):
+        hoy = timezone.localdate()
+        casos = [
+            # (días desde hoy, estado guardado, clase CSS esperada)
+            (-3, Vencimiento.Estado.CUMPLIDO, "cumplido"),
+            (-3, Vencimiento.Estado.PENDIENTE, "vencido"),
+            (2, Vencimiento.Estado.PENDIENTE, "proximo"),
+            (30, Vencimiento.Estado.PENDIENTE, "pendiente"),
+        ]
+        self.client.force_login(self.ana)
+        for dias, estado, clase in casos:
+            with self.subTest(clase=clase):
+                Vencimiento.objects.all().delete()
+                Vencimiento.objects.create(
+                    expediente=self.exp_ana, fecha=hoy + timedelta(days=dias),
+                    descripcion="Plazo", estado=estado,
+                )
+                respuesta = self.client.get(self.exp_ana.get_absolute_url())
+                self.assertContains(respuesta, f'<span class="{clase}">')
+                # Una sola etiqueta: un cumplido nunca aparece además como "Vencido".
+                otras = {"cumplido", "vencido", "proximo", "pendiente"} - {clase}
+                for otra in otras:
+                    self.assertNotContains(respuesta, f'<span class="{otra}">')
+
+
+class ObservacionesPasoTests(DosUsuariosTestCase):
+    def setUp(self):
+        self.client.force_login(self.ana)
+
+    def test_el_detalle_muestra_las_observaciones_de_los_pasos(self):
+        PasoProcesal.objects.create(
+            expediente=self.exp_ana, fecha="2026-11-01", descripcion="Demanda",
+            observaciones="Primer párrafo del escrito.\nSegundo párrafo.",
+        )
+        respuesta = self.client.get(self.exp_ana.get_absolute_url())
+        self.assertContains(respuesta, "Ver observaciones")
+        self.assertContains(respuesta, "Primer párrafo del escrito.\nSegundo párrafo.")
+
+    def test_las_observaciones_no_ejecutan_html(self):
+        # Un escrito pegado con etiquetas HTML se muestra como texto, nunca se ejecuta.
+        PasoProcesal.objects.create(
+            expediente=self.exp_ana, fecha="2026-11-01", descripcion="Prueba",
+            observaciones="<script>alert('x')</script>",
+        )
+        respuesta = self.client.get(self.exp_ana.get_absolute_url())
+        self.assertNotContains(respuesta, "<script>alert")
+        self.assertContains(respuesta, "&lt;script&gt;")
+
+    def test_sin_observaciones_no_aparece_el_desplegable(self):
+        PasoProcesal.objects.create(expediente=self.exp_ana, fecha="2026-11-01", descripcion="Traslado")
+        self.assertNotContains(self.client.get(self.exp_ana.get_absolute_url()), "Ver observaciones")
+
+    def test_el_recuadro_de_observaciones_es_amplio(self):
+        respuesta = self.client.get(reverse("expedientes:paso_nuevo", args=[self.exp_ana.pk]))
+        self.assertContains(respuesta, 'rows="15"')
 
 
 # --- Fase 8A / 8B: archivos adjuntos ------------------------------------------

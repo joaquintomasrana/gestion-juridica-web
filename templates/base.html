@@ -1,20 +1,35 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="es">
+{# data-theme="light": la paleta es clara; sin esto, Pico cambiaría a colores oscuros #}
+{# si el sistema operativo del usuario está en modo oscuro y mezclaría las dos.     #}
+<html lang="es" data-theme="light">
 <head>
     <meta charset="utf-8">
     {# Sin esta línea, el celular muestra la página "de escritorio" achicada. #}
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block titulo %}{% endblock %} — Gestión Jurídica</title>
+    {# Ícono de la pestaña del navegador: el mismo logo de la barra. #}
+    <link rel="icon" href="{% static 'expedientes/logo.svg' %}" type="image/svg+xml">
     {# Pico se sirve desde el proyecto (no por CDN): funciona sin internet. #}
     <link rel="stylesheet" href="{% static 'expedientes/pico.min.css' %}">
     <link rel="stylesheet" href="{% static 'expedientes/estilos.css' %}">
 </head>
 <body>
-    <header class="container">
-        <nav>
+    {# La barra ocupa todo el ancho (para que su color de fondo llegue a los bordes); #}
+    {# el contenido de adentro queda centrado con "container".                      #}
+    <header class="barra">
+        <nav class="container">
             <ul>
-                <li><strong>Gestión Jurídica</strong></li>
+                <li>
+                    {# La marca: logo + nombre; lleva al listado de expedientes. #}
+                    <a href="{% url 'expedientes:lista' %}" class="marca">
+                        <img src="{% static 'expedientes/logo.svg' %}" alt="" width="48" height="48">
+                        <span class="marca-texto">
+                            <span class="marca-nombre">Gestión Jurídica</span>
+                            <span class="marca-bajada">Expedientes y plazos</span>
+                        </span>
+                    </a>
+                </li>
             </ul>
             <ul>
                 {% if user.is_authenticated %}

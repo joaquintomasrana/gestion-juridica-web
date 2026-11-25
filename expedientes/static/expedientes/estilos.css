@@ -1,4 +1,174 @@
-/* Estilos propios. Pico.css pone la base; acá solo lo que Pico no trae. */
+/* Estilos propios. Pico.css pone la base; acá solo lo que Pico no trae
+   y la personalización (paleta, tipografía y tamaño). */
+
+
+/* ---------------------------------------------------------------------------
+   Tipografía: IBM Plex Sans, guardada en el proyecto (funciona sin internet).
+   Sobria y profesional; distingue bien caracteres parecidos (l, I, 1 / O, 0),
+   útil en números de expediente.
+   Es una fuente "variable": un solo archivo trae todos los grosores (100 a 700).
+   Licencia SIL Open Font License: ver fuentes/OFL-IBM-Plex-Sans.txt.
+   --------------------------------------------------------------------------- */
+/* IBM Plex Serif (con serifa), solo para el nombre de la app: misma familia que
+   el texto, así combinan; la serifa evoca lo jurídico (escritos, expedientes). */
+@font-face {
+    font-family: "IBM Plex Serif";
+    src: url("fuentes/ibm-plex-serif-latin-600.woff2") format("woff2");
+    font-weight: 600;
+    font-display: swap;
+}
+@font-face {
+    font-family: "IBM Plex Sans";
+    src: url("fuentes/ibm-plex-sans-latin-wght.woff2") format("woff2");
+    font-weight: 100 700;
+    font-display: swap;  /* mientras carga, muestra la fuente del sistema */
+}
+
+
+/* ---------------------------------------------------------------------------
+   Paleta "Sapphire nightfall whisper" sobre las variables de Pico.
+   Pico define todos sus colores como variables (--pico-...): al redefinirlas
+   acá, toda la app cambia de color sin tocar las plantillas.
+
+   Colores de la paleta:
+     #262B40 azul noche    #06457F azul marino    #2C444C verde petróleo
+     #0474C4 azul zafiro   #5379AE azul medio     #A8C4EC celeste
+   Contraste (mínimo de accesibilidad WCAG AA: 4,5 a 1 para texto):
+     texto #262B40 sobre el fondo       -> 12,6
+     links y botones #06457F            -> 8,7  (texto blanco encima: 9,7)
+     menú blanco sobre la barra #262B40 -> 14,0
+   La paleta no trae un color casi blanco para el fondo, así que se usa un
+   celeste muy diluido (#EEF3FB) que sale del #A8C4EC.
+
+   El selector :root[data-theme="light"] es a propósito más específico que el
+   de Pico, para ganarle aunque los dos definan la misma variable.
+   --------------------------------------------------------------------------- */
+:root[data-theme="light"] {
+    /* Tamaño de TODO (letra, márgenes, botones, campos): Pico mide casi todo en
+       "rem", que depende de este valor; al bajarlo, se achica la pantalla entera.
+       En escritorio queda en 75 %. En el celular se mantiene en 100 % (ver abajo):
+       más chico costaría leer, y el iPhone hace zoom solo al tocar un campo
+       con letra menor a 16 px. */
+    --pico-font-size: 100%;
+
+    /* Tipografía para todo el texto */
+    --pico-font-family: "IBM Plex Sans", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    /* Fondo y texto */
+    --pico-background-color: #EEF3FB;
+    --pico-color: #262B40;
+    --pico-muted-color: #3F5A80;
+    --pico-muted-border-color: #D3DFF0;
+    --pico-text-selection-color: rgba(168, 196, 236, 0.5);
+    --pico-h1-color: #262B40;
+    --pico-h2-color: #262B40;
+    --pico-h3-color: #06457F;
+    --pico-h4-color: #06457F;
+    --pico-h5-color: #06457F;
+    --pico-h6-color: #06457F;
+
+    /* Color principal (links y botones): azul marino; al pasar el mouse, zafiro */
+    --pico-primary: #06457F;
+    --pico-primary-background: #06457F;
+    --pico-primary-border: #06457F;
+    --pico-primary-underline: rgba(6, 69, 127, 0.5);
+    --pico-primary-hover: #0474C4;
+    --pico-primary-hover-background: #0474C4;
+    --pico-primary-hover-border: #0474C4;
+    --pico-primary-hover-underline: #0474C4;
+    --pico-primary-focus: rgba(4, 116, 196, 0.35);
+    --pico-primary-inverse: #FFFFFF;
+
+    /* Color secundario (Salir, Eliminar expediente): verde petróleo */
+    --pico-secondary: #2C444C;
+    --pico-secondary-background: #2C444C;
+    --pico-secondary-border: #2C444C;
+    --pico-secondary-underline: rgba(44, 68, 76, 0.5);
+    --pico-secondary-hover: #262B40;
+    --pico-secondary-hover-background: #262B40;
+    --pico-secondary-hover-border: #262B40;
+    --pico-secondary-hover-underline: #262B40;
+    --pico-secondary-focus: rgba(83, 121, 174, 0.35);
+    --pico-secondary-inverse: #FFFFFF;
+
+    /* Tarjetas (<article>): blancas sobre el fondo celeste; encabezado y pie, celeste muy suave */
+    --pico-card-background-color: #FFFFFF;
+    --pico-card-border-color: #D3DFF0;
+    --pico-card-sectioning-background-color: #F5F8FD;
+
+    /* Formularios: campos blancos con borde azul medio (contraste 4,5 a 1) */
+    --pico-form-element-background-color: #FFFFFF;
+    --pico-form-element-selected-background-color: #A8C4EC;
+    --pico-form-element-border-color: #5379AE;
+    --pico-form-element-color: #262B40;
+    --pico-form-element-placeholder-color: #3F5A80;
+    --pico-form-element-active-background-color: #FFFFFF;
+    --pico-form-element-active-border-color: #0474C4;
+    --pico-form-element-focus-color: rgba(4, 116, 196, 0.35);
+
+    /* Tablas: líneas suaves y filas alternadas en celeste */
+    --pico-table-border-color: #D3DFF0;
+    --pico-table-row-stripped-background-color: rgba(168, 196, 236, 0.18);
+}
+
+/* Tamaño según el ancho de pantalla: celular 100 %, tablet 87,5 %, escritorio 75 %
+   y monitores muy anchos 80 %. */
+@media (min-width: 768px) {
+    :root[data-theme="light"] { --pico-font-size: 87.5%; }
+}
+@media (min-width: 1024px) {
+    :root[data-theme="light"] { --pico-font-size: 75%; }
+}
+@media (min-width: 1536px) {
+    :root[data-theme="light"] { --pico-font-size: 80%; }
+}
+
+/* Títulos más firmes */
+h1, h2, h3, h4, h5, h6 { font-weight: 700; }
+
+/* La barra de navegación ocupa todo el ancho, en azul noche, con el menú en blanco. */
+header.barra { background-color: #262B40; margin-bottom: 1.5rem; }
+header.barra nav a { color: #FFFFFF; }
+header.barra nav a:hover { color: #A8C4EC; }
+
+/* La marca: logo + nombre (con serifa) + una bajada que dice qué hace la app. */
+header.barra a.marca {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    text-decoration: none;
+}
+.marca img { display: block; flex-shrink: 0; }
+.marca-texto { display: flex; flex-direction: column; line-height: 1.1; gap: 0.2rem; }
+.marca-nombre {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-weight: 600;
+    font-size: 2rem;
+    letter-spacing: 0.01em;
+    color: #FFFFFF;
+}
+.marca-bajada {
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #A8C4EC;
+}
+/* Al pasar el mouse, la marca no cambia de color (no es un link "común"). */
+header.barra a.marca:hover .marca-nombre { color: #FFFFFF; }
+/* En el celular, sin la bajada: hay poco espacio. */
+@media (max-width: 576px) {
+    .marca-bajada { display: none; }
+    .marca-nombre { font-size: 1.375rem; }
+    .marca img { width: 38px; height: 38px; }
+}
+/* El botón Salir: borde y texto claros sobre la barra oscura. */
+header.barra button.secondary.outline { color: #FFFFFF; border-color: #A8C4EC; }
+header.barra button.secondary.outline:hover { color: #262B40; background-color: #A8C4EC; }
+
+
+/* ---------------------------------------------------------------------------
+   Componentes propios
+   --------------------------------------------------------------------------- */
 
 /* Formularios que van dentro de una línea de texto (Salir, Cumplido). */
 form.en-linea { display: inline; margin: 0; }
@@ -6,19 +176,22 @@ form.en-linea button { width: auto; margin: 0; padding: 0.25rem 0.75rem; }
 
 /* Mensajes de Django: el color del borde distingue éxito de error. */
 .mensaje { padding: 0.75rem 1rem; margin-bottom: 1rem; border-left: 4px solid; }
-.mensaje-success { border-color: #2e7d32; }
-.mensaje-error { border-color: #c62828; }
-.mensaje-warning { border-color: #b26a00; }
+.mensaje-success { border-color: #2E6B34; }
+.mensaje-error { border-color: #B3261E; }
+.mensaje-warning { border-color: #8A5300; }
 
-/* Vencimientos */
-.vencido { color: #c62828; font-weight: bold; }
-.proximo { color: #b26a00; font-weight: bold; }
+/* Vencimientos. Rojo y naranja NO salen de la paleta a propósito: tienen que
+   alarmar de un vistazo (un plazo vencido no puede pasar desapercibido). */
+.vencido { color: #B3261E; font-weight: bold; }
+.proximo { color: #8A5300; font-weight: bold; }
+.cumplido { color: #2E6B34; font-weight: bold; }   /* verde: contraste 5,8 sobre el fondo */
+.pendiente { color: var(--pico-muted-color); }
 /* En el panel, una franja de color a la izquierda de la fila. */
-tr.fila-vencida td:first-child { box-shadow: inset 4px 0 0 #c62828; }
-tr.fila-proxima td:first-child { box-shadow: inset 4px 0 0 #b26a00; }
+tr.fila-vencida td:first-child { box-shadow: inset 4px 0 0 #B3261E; }
+tr.fila-proxima td:first-child { box-shadow: inset 4px 0 0 #8A5300; }
 
 /* Botón para acciones destructivas (borrar). */
-button.peligro { background-color: #c62828; border-color: #c62828; }
+button.peligro { background-color: #B3261E; border-color: #B3261E; color: #FFFFFF; }
 
 /* Fila de acciones chicas al lado de cada ítem (Editar, Eliminar...). */
 .acciones { font-size: 0.875rem; white-space: nowrap; }
@@ -28,6 +201,23 @@ button.peligro { background-color: #c62828; border-color: #c62828; }
 .items { padding-left: 0; }
 .items li { list-style: none; padding: 0.5rem 0; border-bottom: 1px solid var(--pico-muted-border-color); }
 .items li:last-child { border-bottom: none; }
+
+/* Observaciones de un paso procesal: plegadas por defecto (pueden ser escritos
+   enteros). white-space: pre-wrap respeta los saltos de línea y los espacios. */
+.items details { margin: 0.5rem 0 0; }
+.items details summary { font-size: 0.875rem; color: var(--pico-primary); }
+.observaciones {
+    white-space: pre-wrap;
+    background-color: var(--pico-background-color);
+    border-left: 3px solid #0474C4;
+    padding: 0.75rem 1rem;
+    margin: 0.5rem 0 0;
+    max-height: 32rem;     /* si el escrito es muy largo, se desplaza adentro */
+    overflow-y: auto;
+}
+
+/* Campos de texto largo (observaciones): se pueden estirar hacia abajo. */
+textarea { resize: vertical; }
 
 /* Datos del expediente: etiqueta y valor en dos columnas; en el celular, una debajo de otra. */
 .datos { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; margin: 0; }

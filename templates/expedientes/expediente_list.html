@@ -12,10 +12,11 @@
         <fieldset role="group">
             <input type="search" name="q" placeholder="Buscar por número, carátula, juzgado..." value="{{ request.GET.q }}" aria-label="Buscar">
             <select name="estado" aria-label="Estado">
-                <option value="">Todos los estados</option>
+                {# Por defecto queda elegido "Activo" (lo decide la vista en estado_elegido). #}
                 {% for estado_interno, estado_visible in estados %}
-                    <option value="{{ estado_interno }}" {% if estado_interno == request.GET.estado %}selected{% endif %}>{{ estado_visible }}</option>
+                    <option value="{{ estado_interno }}" {% if estado_interno == estado_elegido %}selected{% endif %}>{{ estado_visible }}</option>
                 {% endfor %}
+                <option value="{{ todos }}" {% if estado_elegido == todos %}selected{% endif %}>Todos los estados</option>
             </select>
             <button type="submit">Buscar</button>
         </fieldset>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Gestión Jurídica">
+  <!-- Logo: balanza de líneas finas, blanca sobre un cuadrado azul zafiro de la paleta.
+       Se usa también como ícono de la pestaña del navegador (favicon). -->
+  <rect width="32" height="32" rx="7" fill="#0474C4"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="16" cy="7" r="1.4"/>
+    <path d="M16 8.4V25"/>
+    <path d="M11 25h10"/>
+    <path d="M7 11h18"/>
+    <path d="M7 11l-3 7M7 11l3 7"/>
+    <path d="M25 11l-3 7M25 11l3 7"/>
+    <path d="M4 18a3 3 0 0 0 6 0z"/>
+    <path d="M22 18a3 3 0 0 0 6 0z"/>
+  </g>
+</svg>

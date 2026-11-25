@@ -56,6 +56,13 @@
                         <a href="{% url 'expedientes:paso_editar' paso.pk %}">Editar</a>
                         <a href="{% url 'expedientes:paso_eliminar' paso.pk %}">Eliminar</a>
                     </span>
+                    {% if paso.observaciones %}
+                        {# Plegadas: pueden ser escritos enteros y alargarían mucho la página. #}
+                        <details>
+                            <summary>Ver observaciones</summary>
+                            <div class="observaciones">{{ paso.observaciones }}</div>
+                        </details>
+                    {% endif %}
                 </li>
             {% empty %}
                 <li>No hay pasos procesales asociados a este expediente.</li>
@@ -71,8 +78,13 @@
         <ul class="items">
             {% for vencimiento in expediente.vencimientos.all %}
                 <li>
-                    {{ vencimiento.fecha|date:"d/m/Y" }} — {{ vencimiento.descripcion }} ({{ vencimiento.get_estado_display }})
-                    {% if vencimiento.esta_vencido %}<span class="vencido">Vencido</span>{% elif vencimiento.vence_pronto %}<span class="proximo">Próximo</span>{% endif %}
+                    {{ vencimiento.fecha|date:"d/m/Y" }} — {{ vencimiento.descripcion }}
+                    {# Una sola etiqueta de estado, con su color: cumplido (verde), #}
+                    {# vencido (rojo), próximo (naranja) o pendiente (gris).       #}
+                    {% if vencimiento.estado == "cumplido" %}<span class="cumplido">✓ Cumplido</span>
+                    {% elif vencimiento.esta_vencido %}<span class="vencido">Vencido</span>
+                    {% elif vencimiento.vence_pronto %}<span class="proximo">Próximo</span>
+                    {% else %}<span class="pendiente">Pendiente</span>{% endif %}
                     <span class="acciones">
                         {% if vencimiento.estado == "pendiente" %}
                             <form method="post" action="{% url 'expedientes:vencimiento_cumplir' vencimiento.pk %}" class="en-linea">

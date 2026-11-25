@@ -29,18 +29,28 @@ class ExpedienteListView(ExpedientePropioMixin, ListView):
     context_object_name = "expedientes"
     paginate_by = 10
 
+    # Valor del filtro de estado que muestra todos los expedientes.
+    TODOS = "todos"
+
+    def get_estado(self):
+        """Estado elegido en el filtro. Si no se eligió ninguno (al entrar a la app),
+        se muestran solo los activos, que son los que se trabajan día a día."""
+        return self.request.GET.get("estado", Expediente.Estado.ACTIVO)
+
     def get_queryset(self):
         qs = super().get_queryset()
         q = self.request.GET.get("q", "")
-        estado = self.request.GET.get("estado", "")
+        estado = self.get_estado()
         qs = qs.filter(numero__icontains=q) | qs.filter(caratula__icontains=q) | qs.filter(fuero_juzgado__icontains=q) | qs.filter(tipo_proceso__icontains=q) | qs.filter(observaciones__icontains=q)
-        if estado:
+        if estado and estado != self.TODOS:
             qs = qs.filter(estado=estado)
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["estados"] = Expediente.Estado.choices
+        context["estado_elegido"] = self.get_estado()
+        context["todos"] = self.TODOS
         return context
 
 

@@ -55,7 +55,9 @@ class PasoProcesalForm(forms.ModelForm):
         fields = ["fecha", "descripcion", "observaciones"]
         widgets = {
             "fecha": FechaInput(),
-            "observaciones": forms.Textarea(attrs={"rows": 3}),
+            # Acá se pegan escritos enteros y comentarios largos: recuadro amplio
+            # (15 renglones), que además se puede estirar con el mouse.
+            "observaciones": forms.Textarea(attrs={"rows": 15}),
         }
 
 
