@@ -19,7 +19,7 @@ El sistema guarda información alcanzada por el secreto profesional. Por eso las
 
 | Tipo de prueba | Cantidad | Resultado |
 |---|---|---|
-| A. Pruebas automáticas (tests de Django) | 43 | ✅ 43 aprobadas |
+| A. Pruebas automáticas (tests de Django) | 53 | ✅ 53 aprobadas |
 | B. Pruebas de seguridad sobre la aplicación publicada | 14 | ✅ 14 aprobadas |
 | C. Pruebas funcionales manuales (escritorio y celular) | 18 | ✅ 18 aprobadas |
 
@@ -33,7 +33,7 @@ Se ejecutan con:
 python manage.py test expedientes
 ```
 
-Resultado: `Ran 43 tests ... OK`.
+Resultado: `Ran 53 tests ... OK`.
 
 Cada prueba crea su propia base de datos temporal, que se descarta al terminar. Las pruebas de adjuntos usan además una carpeta temporal para los archivos.
 
@@ -51,9 +51,12 @@ La mayoría de las pruebas usa **dos usuarios**: Ana, que intenta acceder, y Bet
 | `VencimientoCumplirTests` | 3 | Marcar un vencimiento como cumplido funciona con uno propio, responde 404 con uno ajeno y rechaza GET (405) |
 | `TotalesTests` | 1 | Los totales de honorarios se calculan por separado para cada moneda (pesos y dólares) |
 | `PanelVencimientosTests` | 8 | Reglas de "vencido" y "vence pronto"; el panel muestra solo vencimientos pendientes y propios, ordenados por fecha; no hace una consulta por fila (problema N+1); después de "Cumplido" vuelve al panel sin aceptar redirecciones a sitios externos; exige sesión |
-| `EstiloTests` | 2 | La página 404 es la propia de la aplicación y no revela datos ajenos; las hojas de estilo existen y se enlazan |
+| `EstiloTests` | 2 | La página 404 es la propia de la aplicación y no revela datos ajenos; las hojas de estilo y la tipografía existen y se enlazan; el tema claro está fijado |
+| `FiltroEstadoTests` | 5 | Al entrar se muestran solo los expedientes activos; "Todos" muestra todos los estados, sin incluir expedientes ajenos; el filtro por un estado y la búsqueda respetan la selección |
+| `ObservacionesPasoTests` | 4 | Las observaciones de los pasos procesales se muestran en el detalle, respetando los saltos de línea; un texto con código HTML se muestra como texto y no se ejecuta; sin observaciones no aparece el desplegable; el recuadro de carga es amplio |
+| `EstadoVencimientosDetalleTests` | 1 | Cada vencimiento muestra una sola etiqueta de estado: cumplido, vencido, próximo o pendiente |
 | `AdjuntosTests` | 11 | Carga en expediente propio; rechazo de extensiones no permitidas y de archivos de más de 5 MB; rechazo de carga en expediente ajeno; el archivo se borra del disco al eliminar el adjunto o el expediente; un adjunto ajeno no se puede eliminar ni descargar; la descarga exige sesión; un archivo faltante responde 404; la carpeta `/media/` no es accesible públicamente |
-| **Total** | **43** | |
+| **Total** | **53** | |
 
 ### A.2 Validación de las pruebas (pruebas de mutación)
 
@@ -164,7 +167,7 @@ No son fallas de las pruebas. Son restricciones del entorno de despliegue gratui
 
 ## Conclusión
 
-La aplicación aprobó las 75 pruebas realizadas.
+La aplicación aprobó las 85 pruebas realizadas.
 
 - **Aislamiento entre usuarios:** se verificó en tres niveles: pruebas automáticas, pruebas sobre la aplicación publicada y recorrido manual. Ningún usuario puede ver, modificar ni descargar información de otro.
 - **Configuración de producción:** HTTPS obligatorio, cookies seguras, `DEBUG` desactivado y protección CSRF están efectivamente activos en el servidor publicado.
