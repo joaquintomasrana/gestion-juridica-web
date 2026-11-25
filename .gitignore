@@ -36,4 +36,6 @@ consigna_*.md
 # Archivos subidos por los usuarios (adjuntos) - NO van al repo
 /media/
 
+# Estáticos generados por collectstatic (se regeneran en cada despliegue)
+/staticfiles/
 

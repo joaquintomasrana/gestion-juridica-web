@@ -28,8 +28,40 @@ SECRET_KEY = os.environ["SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
+# Dominios desde los que Django acepta pedidos; cualquier otro recibe un error 400.
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
-        
+
+# Orígenes desde los que se aceptan formularios (POST) cuando el sitio usa HTTPS.
+CSRF_TRUSTED_ORIGINS = []
+
+# Render define esta variable solo (ej.: "gestion-juridica.onrender.com");
+# en tu máquina no existe. Sirve para saber si estamos en producción.
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+EN_RENDER = bool(RENDER_EXTERNAL_HOSTNAME)
+
+# Ajustes de producción: solo en Render, porque runserver no tiene HTTPS
+# y con ellos activos no podrías entrar a tu propia app en local.
+if EN_RENDER:
+    # Se agrega el dominio de Render a las dos listas, sin escribirlo a mano.
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+
+    # Render recibe el HTTPS y le pasa el pedido a Django por HTTP, avisando con
+    # este encabezado. Sin esto, Django creería que llegó por HTTP y la redirección
+    # de abajo entraría en un bucle infinito.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    # Quien entre por http:// es redirigido a https://.
+    SECURE_SSL_REDIRECT = True
+
+    # Las cookies de sesión y de CSRF solo viajan por HTTPS (cifradas):
+    # nadie que espíe la red (ej.: un wifi público) puede robarlas.
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # HSTS: el navegador recuerda "a este sitio, solo por HTTPS" durante 1 hora.
+    # Se empieza con un valor bajo porque uno alto es difícil de deshacer si algo falla.
+    SECURE_HSTS_SECONDS = 3600
 
 
 # Application definition
@@ -46,6 +78,11 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # WhiteNoise entrega los archivos CSS (y demás estáticos) cuando DEBUG=False,
+    # porque en ese modo Django deja de hacerlo. Va segundo: después de la capa de
+    # seguridad (para que el CSS también respete HTTPS) y antes que el resto, así un
+    # pedido de CSS no carga la sesión ni el usuario, que no hacen falta.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -121,6 +158,30 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Carpeta donde se juntan TODOS los estáticos (los tuyos y los del admin) para que
+# WhiteNoise los sirva desde un solo lugar. La llena el comando collectstatic, que
+# copia ahí los archivos de cada app. Es generada: no va a Git (.gitignore).
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Dónde se guardan los archivos:
+# - "default": los adjuntos que suben los usuarios (en media/, como hasta ahora).
+# - "staticfiles": los CSS y demás estáticos.
+# En Render se usa la versión de WhiteNoise, que comprime los archivos y les agrega
+# una "huella" al nombre (estilos.a3f9c1b2.css): si el archivo cambia, cambia el
+# nombre y el navegador descarga el nuevo en vez de mostrar uno viejo guardado.
+# Solo en Render, porque necesita que antes se haya corrido collectstatic; en tu
+# máquina y en los tests no se corre, y todas las páginas darían error.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": (
+            "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            if EN_RENDER
+            else "django.contrib.staticfiles.storage.StaticFilesStorage"
+        ),
+    },
+}
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -134,3 +195,21 @@ LOGOUT_REDIRECT_URL = "login"
 # Archivos subidos
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Registros (logs): con DEBUG=False, Django no muestra los errores ni en pantalla
+# ni en la consola, así que si algo falla en producción no te enterarías.
+# Esto hace que todas las advertencias y errores se escriban en la consola,
+# y Render muestra la consola en su pestaña "Logs".
+LOGGING = {
+    "version": 1,                        # formato de esta configuración (siempre 1)
+    "disable_existing_loggers": False,   # no apagar los registros que Django ya trae
+    "handlers": {
+        # "console": un destino que escribe en la consola
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {
+        # "root" es el registro general: todo lo que no tenga una regla propia pasa por acá
+        "handlers": ["console"],
+        "level": "WARNING",              # desde advertencias para arriba
+    },
+}
