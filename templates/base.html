@@ -1,8 +1,9 @@
 {% load static %}
 <!DOCTYPE html>
-{# data-theme="light": la paleta es clara; sin esto, Pico cambiaría a colores oscuros #}
-{# si el sistema operativo del usuario está en modo oscuro y mezclaría las dos.     #}
-<html lang="es" data-theme="light">
+{# data-theme fija el tema según la cookie (claro por defecto). Sin él, Pico #}
+{# seguiría el modo del sistema operativo y mezclaría sus colores con los   #}
+{# nuestros. Como lo decide el servidor, la página nunca "parpadea".        #}
+<html lang="es" data-theme="{% if modo_oscuro %}dark{% else %}light{% endif %}">
 <head>
     <meta charset="utf-8">
     {# Sin esta línea, el celular muestra la página "de escritorio" achicada. #}
@@ -22,6 +23,15 @@
             {% now "l j \d\e F \d\e Y" as hoy %}
             <span class="mancheta-fecha">{{ hoy|capfirst }}</span>
             <span class="mancheta-usuario">
+                {# Switch de modo oscuro: un formulario POST, sin JavaScript. #}
+                {# "volver" lleva la página actual, para regresar a ella.      #}
+                <form method="post" action="{% url 'tema' %}" class="en-linea">
+                    {% csrf_token %}
+                    <input type="hidden" name="volver" value="{{ request.get_full_path }}">
+                    <button type="submit" class="boton-tema" aria-pressed="{% if modo_oscuro %}true{% else %}false{% endif %}">
+                        {% if modo_oscuro %}Modo claro{% else %}Modo oscuro{% endif %}
+                    </button>
+                </form>
                 {% if user.is_authenticated %}
                     {{ user.username }}
                     <form method="post" action="{% url 'logout' %}" class="en-linea">
@@ -53,5 +63,13 @@
 
         {% block contenido %}{% endblock %}
     </main>
+
+    {# Pie de página con la autoría. El año sale de la fecha del servidor: #}
+    {# se actualiza solo cada año.                                        #}
+    <footer class="pie container">
+        <span class="pie-nombre">Gestión Jurídica</span>
+        {% now "Y" as anio %}
+        <small>Desarrollado por Joaquín Raña · © {{ anio }} · Todos los derechos reservados</small>
+    </footer>
 </body>
 </html>

@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.staticfiles import finders
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
@@ -347,6 +347,15 @@ class EstiloTests(DosUsuariosTestCase):
         self.assertContains(respuesta, "No encontramos lo que buscás", status_code=404)
         self.assertNotContains(respuesta, "Lopez c/ Diaz", status_code=404)
 
+    def test_el_pie_con_la_autoria_aparece_en_el_login_y_en_la_app(self):
+        anio = str(timezone.localdate().year)   # el año se actualiza solo
+        texto = f"Desarrollado por Joaquín Raña · © {anio} · Todos los derechos reservados"
+        self.assertContains(self.client.get(reverse("login")), texto)   # sin sesión
+        self.client.force_login(self.ana)
+        for url in [reverse("expedientes:inicio"), reverse("expedientes:lista")]:
+            with self.subTest(url=url):
+                self.assertContains(self.client.get(url), texto)
+
     def test_los_estilos_existen_y_se_enlazan(self):
         rutas = [
             "expedientes/pico.min.css",
@@ -656,6 +665,60 @@ class ObservacionesPasoTests(DosUsuariosTestCase):
     def test_el_recuadro_de_observaciones_es_amplio(self):
         respuesta = self.client.get(reverse("expedientes:paso_nuevo", args=[self.exp_ana.pk]))
         self.assertContains(respuesta, 'rows="15"')
+
+
+# --- Modo oscuro ----------------------------------------------------------------
+
+class ModoOscuroTests(DosUsuariosTestCase):
+    """El switch del encabezado guarda el tema en una cookie, sin JavaScript."""
+
+    def cambiar(self, volver="/expedientes/", cliente=None):
+        cliente = cliente or self.client
+        return cliente.post(reverse("tema"), {"volver": volver})
+
+    def test_por_defecto_es_claro(self):
+        respuesta = self.client.get(reverse("login"))
+        self.assertContains(respuesta, 'data-theme="light"')
+        self.assertContains(respuesta, "Modo oscuro")
+
+    def test_el_switch_alterna_y_se_recuerda(self):
+        self.client.force_login(self.ana)
+        respuesta = self.cambiar()
+        self.assertRedirects(respuesta, "/expedientes/")  # vuelve a la página donde estaba
+        self.assertEqual(self.client.cookies["tema"].value, "oscuro")
+        pagina = self.client.get(reverse("expedientes:lista"))
+        self.assertContains(pagina, 'data-theme="dark"')
+        self.assertContains(pagina, "Modo claro")
+        # Otra vez: vuelve a claro
+        self.cambiar()
+        self.assertEqual(self.client.cookies["tema"].value, "claro")
+        self.assertContains(self.client.get(reverse("expedientes:lista")), 'data-theme="light"')
+
+    def test_la_cookie_es_segura(self):
+        cookie = self.cambiar().cookies["tema"]
+        self.assertTrue(cookie["httponly"])
+        self.assertEqual(cookie["samesite"], "Lax")
+        self.assertEqual(cookie["max-age"], 365 * 24 * 60 * 60)
+
+    def test_no_redirige_a_sitios_externos(self):
+        for destino in ["https://sitio-malicioso.example/", "//sitio-malicioso.example/", ""]:
+            with self.subTest(destino=destino):
+                respuesta = self.cambiar(volver=destino)
+                self.assertRedirects(respuesta, reverse("expedientes:inicio"), fetch_redirect_response=False)
+
+    def test_funciona_sin_sesion(self):
+        respuesta = self.cambiar(volver="/login/")
+        self.assertRedirects(respuesta, "/login/")
+        self.assertContains(self.client.get("/login/"), 'data-theme="dark"')
+
+    def test_solo_acepta_post_con_csrf(self):
+        self.assertEqual(self.client.get(reverse("tema")).status_code, 405)
+        estricto = Client(enforce_csrf_checks=True)
+        self.assertEqual(estricto.post(reverse("tema"), {"volver": "/"}).status_code, 403)
+
+    def test_un_valor_raro_en_la_cookie_se_trata_como_claro(self):
+        self.client.cookies["tema"] = "<script>"
+        self.assertContains(self.client.get(reverse("login")), 'data-theme="light"')
 
 
 # --- Fase 8A / 8B: archivos adjuntos ------------------------------------------

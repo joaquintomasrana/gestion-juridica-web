@@ -104,6 +104,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # Tema claro u oscuro, según la cookie (ver context_processors.py).
+                'gestion_juridica.context_processors.tema',
             ],
         },
     },

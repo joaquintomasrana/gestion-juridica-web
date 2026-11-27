@@ -46,7 +46,8 @@ Este proyecto propone una aplicación web centralizada, accesible desde cualquie
   - **Honorarios y gastos**, con totales separados por moneda (pesos y dólares).
   - **Archivos adjuntos** (PDF, documentos e imágenes de hasta 5 MB), con descarga protegida.
 - **Panel de vencimientos:** todos los plazos pendientes del usuario en una sola pantalla, ordenados por fecha, con los vencidos y los próximos resaltados.
-- **Interfaz responsive:** se usa desde la computadora o el celular.
+- **Interfaz editorial y responsive**, inspirada en la diagramación de los diarios: títulos con serifa, secciones separadas por filetes, diseño plano. Se usa desde la computadora o el celular.
+- **Modo claro y oscuro**, con un switch en el encabezado. La elección se recuerda en el navegador y funciona sin JavaScript.
 
 ## Seguridad
 
@@ -57,7 +58,8 @@ El sistema maneja información alcanzada por el secreto profesional, así que la
   - El titular lo asigna siempre el servidor, nunca el formulario.
 - **404 en lugar de 403** ante un recurso ajeno: no se revela si el recurso existe.
 - **Descarga protegida de adjuntos.** Los archivos no tienen una URL pública: se sirven a través de una vista que exige sesión y verifica el titular.
-- **Acciones que modifican datos solo por POST**, con protección CSRF. Esto incluye marcar como cumplido y cerrar sesión.
+- **Acciones que modifican datos solo por POST**, con protección CSRF. Esto incluye marcar como cumplido, cambiar el tema y cerrar sesión.
+- **Sin redirecciones abiertas.** Cuando una acción vuelve a la página anterior, el destino se valida (o se elige de una lista fija) para que nunca lleve a un sitio externo.
 - **En producción:**
   - HTTPS obligatorio, con HSTS.
   - Cookies de sesión y CSRF marcadas como seguras.
@@ -71,7 +73,7 @@ El sistema maneja información alcanzada por el secreto profesional, así que la
 | Lenguaje | Python 3.13 |
 | Framework | Django 5.2 LTS |
 | Base de datos | SQLite (desarrollo y pruebas) / PostgreSQL en Neon (producción) |
-| Interfaz | Plantillas de Django + Pico.css, tipografía IBM Plex |
+| Interfaz | Plantillas de Django + Pico.css, sin JavaScript; tipografías Newsreader y Libre Franklin |
 | Servidor de producción | Gunicorn |
 | Archivos estáticos | WhiteNoise |
 | Despliegue | Render |
@@ -142,6 +144,8 @@ Al eliminar un expediente se eliminan también sus entidades asociadas y los arc
 ```
 gestion-juridica-web/
 ├── gestion_juridica/          # Configuración del proyecto (settings, urls, wsgi)
+│   ├── views.py               # Registro de usuarios y cambio de tema (claro/oscuro)
+│   └── context_processors.py  # Pone el tema elegido a disposición de todas las plantillas
 ├── expedientes/               # Aplicación principal
 │   ├── models.py              # Modelos de datos
 │   ├── views.py               # Vistas (basadas en clases)
@@ -216,13 +220,14 @@ Después, abrir http://127.0.0.1:8000/ en el navegador.
 python manage.py test expedientes
 ```
 
-La suite tiene **69 pruebas automáticas**. Cubren:
+La suite tiene **79 pruebas automáticas**. Cubren:
 
 - el aislamiento entre usuarios, tanto en consultas como en modificaciones;
 - las validaciones;
 - los archivos adjuntos y su descarga protegida;
 - el dashboard y el panel de vencimientos, incluida la cantidad de consultas a la base;
 - la fecha de última actualización de los expedientes;
+- el modo oscuro, incluida la validación del destino de regreso;
 - la interfaz.
 
 Su eficacia se verificó introduciendo fallas a propósito en el código y comprobando que las pruebas las detectaran.
