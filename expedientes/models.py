@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
@@ -38,7 +38,10 @@ class Expediente(models.Model):
     actualizado = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["-creado"]
+        # Primero los que tuvieron actividad más reciente (ver las señales al final).
+        # "-pk" desempata: sin un orden único, la paginación podría repetir u
+        # omitir expedientes con la misma fecha entre una página y otra.
+        ordering = ["-actualizado", "-pk"]
         verbose_name = "expediente"
         verbose_name_plural = "expedientes"
         constraints = [
@@ -194,3 +197,27 @@ def borrar_archivo_del_disco(sender, instance, **kwargs):
     # la base borra el registro, pero el archivo en media/ hay que borrarlo a mano.
     if instance.archivo:
         instance.archivo.delete(save=False)
+
+
+# --- Última actualización del expediente ---------------------------------------
+# "actualizado" usa auto_now, que solo se renueva al guardar el propio expediente.
+# Pero casi todo el trabajo diario se guarda en las entidades asociadas (un paso
+# nuevo, un vencimiento cumplido, un adjunto). Estas señales hacen que cualquier
+# alta, cambio o baja de una de ellas cuente como actividad sobre su expediente,
+# venga de donde venga: las vistas, el admin o un comando.
+
+ENTIDADES_DEL_EXPEDIENTE = (Parte, PasoProcesal, Vencimiento, Honorario, Gasto, ArchivoAdjunto)
+
+
+def marcar_expediente_actualizado(sender, instance, **kwargs):
+    # update() escribe una sola columna en la base, sin volver a guardar el
+    # expediente entero (ni disparar su save()). Si el expediente se está
+    # borrando en cascada, no encuentra la fila y no hace nada.
+    Expediente.objects.filter(pk=instance.expediente_id).update(actualizado=timezone.now())
+
+
+for modelo in ENTIDADES_DEL_EXPEDIENTE:
+    post_save.connect(marcar_expediente_actualizado, sender=modelo,
+                      dispatch_uid=f"actualizado-al-guardar-{modelo.__name__}")
+    post_delete.connect(marcar_expediente_actualizado, sender=modelo,
+                        dispatch_uid=f"actualizado-al-borrar-{modelo.__name__}")

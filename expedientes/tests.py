@@ -1,7 +1,8 @@
 import os
 import shutil
 import tempfile
-from datetime import timedelta
+from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -406,6 +407,85 @@ class FiltroEstadoTests(DosUsuariosTestCase):
         self.assertNotContains(self.ver(estado="todos"), "Lopez c/ Diaz")
 
 
+class UltimaActualizacionTests(DosUsuariosTestCase):
+    """Bug: la "última actualización" del expediente quedaba igual a su creación.
+
+    Cualquier cambio en el expediente o en sus datos asociados (partes, pasos,
+    vencimientos, honorarios, gastos, adjuntos) cuenta como actividad sobre él.
+    """
+
+    # Mediodía UTC: en la hora de Argentina sigue siendo el 01/01/2020
+    # (a medianoche UTC sería el 31/12/2019 y el test del listado no probaría nada).
+    FECHA_VIEJA = datetime(2020, 1, 1, 15, 0, tzinfo=dt_timezone.utc)
+
+    def setUp(self):
+        self.client.force_login(self.ana)
+        # Se lleva la fecha a 2020 para detectar si la acción la actualiza.
+        Expediente.objects.filter(pk=self.exp_ana.pk).update(
+            creado=self.FECHA_VIEJA, actualizado=self.FECHA_VIEJA
+        )
+
+    def assert_actualizado(self):
+        self.exp_ana.refresh_from_db()
+        self.assertGreater(self.exp_ana.actualizado, self.FECHA_VIEJA)
+        self.assertEqual(self.exp_ana.creado, self.FECHA_VIEJA)  # la creación no cambia
+
+    def reiniciar(self):
+        Expediente.objects.filter(pk=self.exp_ana.pk).update(actualizado=self.FECHA_VIEJA)
+
+    def test_editar_el_expediente(self):
+        self.client.post(reverse("expedientes:editar", args=[self.exp_ana.pk]),
+                         {"caratula": "Gomez c/ Perez", "estado": "activo"})
+        self.assert_actualizado()
+
+    def test_crear_editar_y_eliminar_entidades_asociadas(self):
+        for modelo, nueva, editar, eliminar, datos in ENTIDADES:
+            with self.subTest(entidad=modelo.__name__, accion="crear"):
+                self.client.post(reverse(f"expedientes:{nueva}", args=[self.exp_ana.pk]), datos)
+                self.assert_actualizado()
+            entidad = modelo.objects.get(expediente=self.exp_ana)
+            with self.subTest(entidad=modelo.__name__, accion="editar"):
+                self.reiniciar()
+                self.client.post(reverse(f"expedientes:{editar}", args=[entidad.pk]), datos)
+                self.assert_actualizado()
+            with self.subTest(entidad=modelo.__name__, accion="eliminar"):
+                self.reiniciar()
+                self.client.post(reverse(f"expedientes:{eliminar}", args=[entidad.pk]))
+                self.assert_actualizado()
+            self.reiniciar()
+
+    def test_marcar_un_vencimiento_como_cumplido(self):
+        vencimiento = Vencimiento.objects.create(
+            expediente=self.exp_ana, fecha="2026-11-20", descripcion="Contestar"
+        )
+        self.reiniciar()
+        self.client.post(reverse("expedientes:vencimiento_cumplir", args=[vencimiento.pk]))
+        self.assert_actualizado()
+
+    def test_un_cambio_ajeno_no_toca_otros_expedientes(self):
+        exp_beto_antes = Expediente.objects.get(pk=self.exp_beto.pk).actualizado
+        self.client.post(reverse("expedientes:parte_nueva", args=[self.exp_ana.pk]),
+                         {"nombre": "Juan Lopez", "tipo": "actor"})
+        self.assertEqual(Expediente.objects.get(pk=self.exp_beto.pk).actualizado, exp_beto_antes)
+
+    def test_el_listado_muestra_primero_el_de_actividad_mas_reciente(self):
+        # El más antiguo (creado primero) pasa arriba al recibir un paso nuevo.
+        nuevo = Expediente.objects.create(owner=self.ana, caratula="Nuevo c/ Reciente")
+        respuesta = self.client.get(reverse("expedientes:lista"))
+        self.assertEqual(respuesta.context["expedientes"][0], nuevo)
+
+        self.client.post(reverse("expedientes:paso_nuevo", args=[self.exp_ana.pk]),
+                         {"fecha": "2026-11-01", "descripcion": "Traslado"})
+        respuesta = self.client.get(reverse("expedientes:lista"))
+        self.assertEqual(respuesta.context["expedientes"][0], self.exp_ana)
+
+    def test_el_listado_muestra_la_ultima_actualizacion(self):
+        self.client.post(reverse("expedientes:parte_nueva", args=[self.exp_ana.pk]),
+                         {"nombre": "Juan Lopez", "tipo": "actor"})
+        respuesta = self.client.get(reverse("expedientes:lista"))
+        self.assertNotContains(respuesta, "01/01/2020")
+
+
 class EstadoVencimientosDetalleTests(DosUsuariosTestCase):
     def test_cada_vencimiento_muestra_su_estado_con_su_color(self):
         hoy = timezone.localdate()
@@ -531,6 +611,20 @@ class AdjuntosTests(DosUsuariosTestCase):
         ruta = self.exp_ana.adjuntos.get().archivo.path
         self.client.post(reverse("expedientes:eliminar", args=[self.exp_ana.pk]))
         self.assertFalse(os.path.exists(ruta))
+
+    def test_subir_y_eliminar_un_adjunto_actualiza_el_expediente(self):
+        viejo = datetime(2020, 1, 1, 15, 0, tzinfo=dt_timezone.utc)
+        self.client.force_login(self.ana)
+        Expediente.objects.filter(pk=self.exp_ana.pk).update(actualizado=viejo)
+        self.subir(self.exp_ana)
+        self.exp_ana.refresh_from_db()
+        self.assertGreater(self.exp_ana.actualizado, viejo)
+
+        Expediente.objects.filter(pk=self.exp_ana.pk).update(actualizado=viejo)
+        adjunto = self.exp_ana.adjuntos.get()
+        self.client.post(reverse("expedientes:adjunto_eliminar", args=[adjunto.pk]))
+        self.exp_ana.refresh_from_db()
+        self.assertGreater(self.exp_ana.actualizado, viejo)
 
     def test_no_puede_eliminar_un_adjunto_ajeno(self):
         adjunto = self.subir_como_beto()
