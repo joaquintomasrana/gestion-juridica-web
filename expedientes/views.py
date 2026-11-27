@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
@@ -6,9 +7,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
 from django.utils.functional import cached_property
 from django.views import View
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from .models import ArchivoAdjunto, Expediente, Gasto, Honorario, Parte, PasoProcesal, Vencimiento
 from .forms import (
     AdjuntoForm, ExpedienteForm, GastoForm, HonorarioForm, ParteForm, PasoProcesalForm, VencimientoForm,
@@ -22,6 +24,37 @@ class ExpedientePropioMixin(LoginRequiredMixin):
 
     def get_queryset(self):
         return Expediente.objects.filter(owner=self.request.user)
+
+class InicioView(LoginRequiredMixin, TemplateView):
+    """Pantalla inicial: el estado del trabajo del usuario de un vistazo."""
+    template_name = "expedientes/inicio.html"
+
+    # "Último mes" = los últimos 30 días.
+    DIAS_MOVIMIENTO = 30
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        hoy = timezone.localdate()
+        expedientes = Expediente.objects.filter(owner=self.request.user)
+        # Vencimientos pendientes del usuario: el dueño se alcanza a través del expediente.
+        pendientes = Vencimiento.objects.filter(
+            expediente__owner=self.request.user,
+            estado=Vencimiento.Estado.PENDIENTE,
+        ).select_related("expediente")  # trae el expediente en la misma consulta (evita N+1)
+
+        context["en_tramite"] = expedientes.filter(estado=Expediente.Estado.ACTIVO).count()
+        context["con_movimiento"] = expedientes.filter(
+            actualizado__gte=timezone.now() - timedelta(days=self.DIAS_MOVIMIENTO)
+        ).count()
+        context["vencen_hoy"] = list(pendientes.filter(fecha=hoy))
+        context["proximos"] = list(pendientes.filter(
+            fecha__gt=hoy, fecha__lte=hoy + timedelta(days=Vencimiento.DIAS_AVISO)
+        ))
+        context["cantidad_vencidos"] = pendientes.filter(fecha__lt=hoy).count()
+        context["dias_aviso"] = Vencimiento.DIAS_AVISO
+        context["dias_movimiento"] = self.DIAS_MOVIMIENTO
+        return context
+
 
 class ExpedienteListView(ExpedientePropioMixin, ListView):
     model = Expediente
@@ -241,10 +274,17 @@ class VencimientoCumplirView(LoginRequiredMixin, View):
         vencimiento.estado = Vencimiento.Estado.CUMPLIDO
         vencimiento.save(update_fields=["estado"])
         messages.success(request, "Vencimiento marcado como cumplido.")
-        # Se compara contra un valor fijo: nunca se redirige a una URL que mande el usuario.
-        if request.POST.get("volver") == "panel":
-            return redirect("expedientes:vencimientos")
+        # Se busca en una lista fija de destinos: nunca se redirige a una URL que
+        # mande el usuario (eso sería una "redirección abierta").
+        destino = self.DESTINOS.get(request.POST.get("volver"))
+        if destino:
+            return redirect(destino)
         return redirect(vencimiento.expediente)
+
+    DESTINOS = {
+        "panel": "expedientes:vencimientos",
+        "inicio": "expedientes:inicio",
+    }
 
 
 class HonorarioCreateView(HijoCreateView):

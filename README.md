@@ -30,10 +30,15 @@ Este proyecto propone una aplicación web centralizada, accesible desde cualquie
 ## Características
 
 - **Usuarios:** registro, inicio y cierre de sesión.
+- **Pantalla inicial (dashboard):** el estado del trabajo de un vistazo.
+  - Expedientes en trámite.
+  - Vencimientos de hoy y de los próximos 7 días, con botón para marcarlos como cumplidos.
+  - Aviso si hay vencimientos sin resolver con la fecha ya pasada.
+  - Expedientes con movimiento en los últimos 30 días.
 - **Expedientes:** alta, consulta, modificación y baja.
   - Número único por titular.
   - Búsqueda por texto y filtro por estado. Por defecto se muestran solo los activos.
-  - Listado paginado.
+  - Listado paginado, con los expedientes de actividad más reciente primero. Cualquier cambio en un expediente o en sus datos asociados actualiza su fecha de última actualización.
 - **Entidades de cada expediente**, gestionadas desde su detalle:
   - **Partes** (actor, demandado, tercero).
   - **Pasos procesales**, con observaciones extensas (por ejemplo, el texto completo de un escrito), plegables en el detalle.
@@ -211,12 +216,13 @@ Después, abrir http://127.0.0.1:8000/ en el navegador.
 python manage.py test expedientes
 ```
 
-La suite tiene **53 pruebas automáticas**. Cubren:
+La suite tiene **69 pruebas automáticas**. Cubren:
 
 - el aislamiento entre usuarios, tanto en consultas como en modificaciones;
 - las validaciones;
 - los archivos adjuntos y su descarga protegida;
-- el panel de vencimientos, incluida la cantidad de consultas a la base;
+- el dashboard y el panel de vencimientos, incluida la cantidad de consultas a la base;
+- la fecha de última actualización de los expedientes;
 - la interfaz.
 
 Su eficacia se verificó introduciendo fallas a propósito en el código y comprobando que las pruebas las detectaran.

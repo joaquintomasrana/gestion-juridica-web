@@ -1,0 +1,33 @@
+{# Tabla de vencimientos reutilizable (la usa el dashboard dos veces).        #}
+{# Recibe: "vencimientos" (lista) y "vacio" (texto si no hay ninguno).       #}
+<div class="overflow-auto">
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Descripción</th>
+                <th>Expediente</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for vencimiento in vencimientos %}
+                <tr>
+                    <td>{{ vencimiento.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ vencimiento.descripcion }}</td>
+                    <td><a href="{% url 'expedientes:detalle' vencimiento.expediente.pk %}">{{ vencimiento.expediente.caratula }}</a></td>
+                    <td>
+                        <form method="post" action="{% url 'expedientes:vencimiento_cumplir' vencimiento.pk %}" class="en-linea">
+                            {% csrf_token %}
+                            {# Después de marcarlo, volver al dashboard. #}
+                            <input type="hidden" name="volver" value="inicio">
+                            <button type="submit" class="outline">Cumplido</button>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">{{ vacio }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

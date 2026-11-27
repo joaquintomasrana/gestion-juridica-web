@@ -407,6 +407,92 @@ class FiltroEstadoTests(DosUsuariosTestCase):
         self.assertNotContains(self.ver(estado="todos"), "Lopez c/ Diaz")
 
 
+class InicioTests(DosUsuariosTestCase):
+    """Dashboard de la pantalla inicial."""
+
+    def setUp(self):
+        self.hoy = timezone.localdate()
+        self.client.force_login(self.ana)
+
+    def vencimiento(self, expediente, dias, descripcion, estado=Vencimiento.Estado.PENDIENTE):
+        return Vencimiento.objects.create(
+            expediente=expediente, fecha=self.hoy + timedelta(days=dias),
+            descripcion=descripcion, estado=estado,
+        )
+
+    def ver(self):
+        return self.client.get(reverse("expedientes:inicio"))
+
+    def test_es_la_pantalla_inicial_y_exige_sesion(self):
+        self.assertEqual(reverse("expedientes:inicio"), "/")
+        self.client.logout()
+        self.assertRedirects(self.ver(), f"{reverse('login')}?next=/")
+
+    def test_al_iniciar_sesion_se_llega_al_dashboard(self):
+        self.client.logout()
+        self.ana.set_password("clave-segura-123")
+        self.ana.save()
+        respuesta = self.client.post(reverse("login"), {"username": "ana", "password": "clave-segura-123"})
+        self.assertRedirects(respuesta, reverse("expedientes:inicio"))
+
+    def test_cuenta_los_expedientes_en_tramite(self):
+        Expediente.objects.create(owner=self.ana, caratula="Archivado", estado=Expediente.Estado.ARCHIVADO)
+        self.assertEqual(self.ver().context["en_tramite"], 1)  # exp_ana; el archivado y el de Beto no
+
+    def test_vencimientos_de_hoy_y_de_los_proximos_7_dias(self):
+        self.vencimiento(self.exp_ana, 0, "Hoy")
+        self.vencimiento(self.exp_ana, 1, "Manana")
+        self.vencimiento(self.exp_ana, 7, "En siete dias")
+        self.vencimiento(self.exp_ana, 8, "En ocho dias")
+        self.vencimiento(self.exp_ana, 0, "Hoy pero cumplido", estado=Vencimiento.Estado.CUMPLIDO)
+        contexto = self.ver().context
+        self.assertEqual([v.descripcion for v in contexto["vencen_hoy"]], ["Hoy"])
+        self.assertEqual([v.descripcion for v in contexto["proximos"]], ["Manana", "En siete dias"])
+
+    def test_avisa_si_hay_vencimientos_sin_resolver(self):
+        self.assertNotContains(self.ver(), "sin resolver")
+        self.vencimiento(self.exp_ana, -3, "Atrasado")
+        self.vencimiento(self.exp_ana, -10, "Cumplido a tiempo", estado=Vencimiento.Estado.CUMPLIDO)
+        respuesta = self.ver()
+        self.assertEqual(respuesta.context["cantidad_vencidos"], 1)
+        self.assertContains(respuesta, "tenés 1 vencimiento sin resolver")
+
+    def test_cuenta_los_expedientes_con_movimiento_en_el_ultimo_mes(self):
+        hace_40_dias = timezone.now() - timedelta(days=40)
+        viejo = Expediente.objects.create(owner=self.ana, caratula="Sin movimiento")
+        Expediente.objects.filter(pk=viejo.pk).update(actualizado=hace_40_dias)
+        self.assertEqual(self.ver().context["con_movimiento"], 1)  # solo exp_ana
+
+    def test_no_incluye_datos_de_otros_usuarios(self):
+        self.vencimiento(self.exp_beto, 0, "Vence hoy de Beto")
+        self.vencimiento(self.exp_beto, -2, "Vencido de Beto")
+        respuesta = self.ver()
+        contexto = respuesta.context
+        self.assertEqual(contexto["vencen_hoy"], [])
+        self.assertEqual(contexto["cantidad_vencidos"], 0)
+        self.assertEqual(contexto["en_tramite"], 1)
+        self.assertEqual(contexto["con_movimiento"], 1)
+        self.assertNotContains(respuesta, "de Beto")
+
+    def test_cada_tarjeta_dice_que_cuenta(self):
+        # Un número suelto confunde: cada tarjeta nombra si son expedientes o vencimientos.
+        self.vencimiento(self.exp_ana, 2, "Contestar")
+        respuesta = self.ver()
+        for texto in [
+            "Expediente en trámite",
+            "Vencimientos hoy",
+            "Vencimiento en los próximos 7 días",
+            "Expediente con movimiento en los últimos 30 días",
+        ]:
+            with self.subTest(texto=texto):
+                self.assertContains(respuesta, texto)
+
+    def test_cumplido_desde_el_dashboard_vuelve_al_dashboard(self):
+        vencimiento = self.vencimiento(self.exp_ana, 0, "Hoy")
+        url = reverse("expedientes:vencimiento_cumplir", args=[vencimiento.pk])
+        self.assertRedirects(self.client.post(url, {"volver": "inicio"}), reverse("expedientes:inicio"))
+
+
 class UltimaActualizacionTests(DosUsuariosTestCase):
     """Bug: la "última actualización" del expediente quedaba igual a su creación.
 

@@ -202,7 +202,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Autenticación
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "expedientes:lista"
+LOGIN_REDIRECT_URL = "expedientes:inicio"
 LOGOUT_REDIRECT_URL = "login"
 
 # Archivos subidos

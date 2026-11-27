@@ -8,7 +8,7 @@ El sistema guarda información alcanzada por el secreto profesional. Por eso las
 
 | | |
 |---|---|
-| Fecha de ejecución | 25/11/2026 |
+| Fecha de ejecución | A: 27/11/2026 (suite actualizada) · B y C: 25/11/2026 |
 | Aplicación publicada | https://gestion-juridica.onrender.com |
 | Servidor | Render (plan gratuito), Gunicorn, región Virginia (EE. UU.) |
 | Base de datos | PostgreSQL en Neon (producción); SQLite (desarrollo y pruebas automáticas) |
@@ -19,9 +19,11 @@ El sistema guarda información alcanzada por el secreto profesional. Por eso las
 
 | Tipo de prueba | Cantidad | Resultado |
 |---|---|---|
-| A. Pruebas automáticas (tests de Django) | 53 | ✅ 53 aprobadas |
+| A. Pruebas automáticas (tests de Django) | 69 | ✅ 69 aprobadas |
 | B. Pruebas de seguridad sobre la aplicación publicada | 14 | ✅ 14 aprobadas |
 | C. Pruebas funcionales manuales (escritorio y celular) | 18 | ✅ 18 aprobadas |
+
+Las pruebas B y C se realizaron el 25/11/2026, antes de agregar el dashboard de la pantalla inicial y el orden del listado por actividad reciente. Esas funciones están cubiertas por las pruebas automáticas (grupos `InicioTests` y `UltimaActualizacionTests`).
 
 ---
 
@@ -33,7 +35,7 @@ Se ejecutan con:
 python manage.py test expedientes
 ```
 
-Resultado: `Ran 53 tests ... OK`.
+Resultado: `Ran 69 tests ... OK`.
 
 Cada prueba crea su propia base de datos temporal, que se descarta al terminar. Las pruebas de adjuntos usan además una carpeta temporal para los archivos.
 
@@ -55,8 +57,10 @@ La mayoría de las pruebas usa **dos usuarios**: Ana, que intenta acceder, y Bet
 | `FiltroEstadoTests` | 5 | Al entrar se muestran solo los expedientes activos; "Todos" muestra todos los estados, sin incluir expedientes ajenos; el filtro por un estado y la búsqueda respetan la selección |
 | `ObservacionesPasoTests` | 4 | Las observaciones de los pasos procesales se muestran en el detalle, respetando los saltos de línea; un texto con código HTML se muestra como texto y no se ejecuta; sin observaciones no aparece el desplegable; el recuadro de carga es amplio |
 | `EstadoVencimientosDetalleTests` | 1 | Cada vencimiento muestra una sola etiqueta de estado: cumplido, vencido, próximo o pendiente |
-| `AdjuntosTests` | 11 | Carga en expediente propio; rechazo de extensiones no permitidas y de archivos de más de 5 MB; rechazo de carga en expediente ajeno; el archivo se borra del disco al eliminar el adjunto o el expediente; un adjunto ajeno no se puede eliminar ni descargar; la descarga exige sesión; un archivo faltante responde 404; la carpeta `/media/` no es accesible públicamente |
-| **Total** | **53** | |
+| `AdjuntosTests` | 12 | Carga en expediente propio; rechazo de extensiones no permitidas y de archivos de más de 5 MB; rechazo de carga en expediente ajeno; el archivo se borra del disco al eliminar el adjunto o el expediente; un adjunto ajeno no se puede eliminar ni descargar; la descarga exige sesión; un archivo faltante responde 404; la carpeta `/media/` no es accesible públicamente; subir o eliminar un adjunto actualiza la fecha del expediente |
+| `InicioTests` | 9 | El dashboard es la pantalla inicial, exige sesión y es el destino después del login; cada tarjeta nombra lo que cuenta (expedientes o vencimientos); cuenta los expedientes en trámite y los que tuvieron movimiento en los últimos 30 días; separa los vencimientos de hoy de los próximos 7 días (incluido el día 7, excluido el 8) y no muestra cumplidos; avisa solo si hay vencimientos sin resolver; no incluye datos de otros usuarios; "Cumplido" vuelve al dashboard |
+| `UltimaActualizacionTests` | 6 | Editar el expediente, y crear, editar o eliminar cualquiera de sus entidades asociadas, actualiza su fecha de última actualización sin cambiar la de creación; "Cumplido" también la actualiza; un cambio no afecta expedientes de otros usuarios; el listado muestra primero el de actividad más reciente y su fecha real |
+| **Total** | **69** | |
 
 ### A.2 Validación de las pruebas (pruebas de mutación)
 
@@ -75,8 +79,13 @@ Una prueba que nunca falla no demuestra nada. Para comprobar que estas detectan 
 | Quitar el filtro por dueño del panel de vencimientos | 1 |
 | Quitar la optimización de consultas del panel (`select_related`) | 1 |
 | Aceptar cualquier destino al volver desde "Cumplido" | 1 |
+| Quitar la actualización de la fecha del expediente al cambiar sus datos asociados | 18 |
+| Volver a ordenar el listado por fecha de creación | 1 |
+| Quitar el filtro por dueño de los vencimientos del dashboard | 1 |
+| Excluir el día 7 de los próximos vencimientos del dashboard | 1 |
+| Contar todos los expedientes como "en trámite", sin filtrar por estado | 1 |
 
-En todos los casos al menos una prueba detectó la falla.
+En los 16 casos al menos una prueba detectó la falla.
 
 ---
 
@@ -167,7 +176,7 @@ No son fallas de las pruebas. Son restricciones del entorno de despliegue gratui
 
 ## Conclusión
 
-La aplicación aprobó las 85 pruebas realizadas.
+La aplicación aprobó las 101 pruebas realizadas.
 
 - **Aislamiento entre usuarios:** se verificó en tres niveles: pruebas automáticas, pruebas sobre la aplicación publicada y recorrido manual. Ningún usuario puede ver, modificar ni descargar información de otro.
 - **Configuración de producción:** HTTPS obligatorio, cookies seguras, `DEBUG` desactivado y protección CSRF están efectivamente activos en el servidor publicado.

@@ -132,34 +132,31 @@ header.barra nav a { color: #FFFFFF; }
 header.barra nav a:hover { color: #A8C4EC; }
 
 /* La marca: logo + nombre (con serifa) + una bajada que dice qué hace la app. */
+/* Tamaños en px y no en rem, a propósito: la marca NO se achica con el 75 % del
+   resto de la app. Achicada, se veía pixelada en monitores 1080p (en Windows, el
+   texto claro sobre fondo oscuro y las serifas finas se dibujan peor en tamaños chicos). */
 header.barra a.marca {
     display: flex;
     align-items: center;
-    gap: 0.875rem;
+    gap: 14px;
     text-decoration: none;
 }
-.marca img { display: block; flex-shrink: 0; }
-.marca-texto { display: flex; flex-direction: column; line-height: 1.1; gap: 0.2rem; }
+.marca img { display: block; flex-shrink: 0; width: 56px; height: 56px; }
 .marca-nombre {
+    line-height: 1.1;
     font-family: "IBM Plex Serif", Georgia, serif;
     font-weight: 600;
-    font-size: 2rem;
+    font-size: 32px;
     letter-spacing: 0.01em;
     color: #FFFFFF;
-}
-.marca-bajada {
-    font-size: 0.8125rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #A8C4EC;
+    text-rendering: optimizeLegibility;   /* activa el ajuste fino entre letras */
 }
 /* Al pasar el mouse, la marca no cambia de color (no es un link "común"). */
 header.barra a.marca:hover .marca-nombre { color: #FFFFFF; }
-/* En el celular, sin la bajada: hay poco espacio. */
+/* En el celular, más chica: hay poco espacio junto al menú. */
 @media (max-width: 576px) {
-    .marca-bajada { display: none; }
-    .marca-nombre { font-size: 1.375rem; }
-    .marca img { width: 38px; height: 38px; }
+    .marca-nombre { font-size: 22px; }
+    .marca img { width: 40px; height: 40px; }
 }
 /* El botón Salir: borde y texto claros sobre la barra oscura. */
 header.barra button.secondary.outline { color: #FFFFFF; border-color: #A8C4EC; }
@@ -238,3 +235,21 @@ textarea { resize: vertical; }
 /* Los totales por moneda, un poco separados de la lista. */
 .totales { margin: 0.5rem 0 1rem; }
 .totales p { margin: 0; }
+
+/* Dashboard (pantalla inicial): una tarjeta por indicador, con el número grande. */
+.indicadores { margin-bottom: 0.5rem; }
+.indicador {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    border-top: 4px solid #0474C4;   /* franja de la paleta arriba de cada tarjeta */
+}
+.indicador-numero { font-size: 2.5rem; font-weight: 700; line-height: 1.1; color: #06457F; }
+.indicador-texto { color: var(--pico-muted-color); }
+.indicador a { margin-top: auto; font-size: 0.875rem; }
+/* Si algo vence hoy, la tarjeta lo marca en naranja (como "próximo" en el panel). */
+.indicador-hoy { border-top-color: #8A5300; }
+.indicador-hoy .indicador-numero { color: #8A5300; }
+/* El aviso de vencimientos sin resolver, un poco más visible que un mensaje común. */
+.aviso-vencidos { font-size: 1.0625rem; }
+.aviso-vencidos a { color: #B3261E; font-weight: 600; }

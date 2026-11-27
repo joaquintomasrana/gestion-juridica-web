@@ -21,18 +21,16 @@
         <nav class="container">
             <ul>
                 <li>
-                    {# La marca: logo + nombre; lleva al listado de expedientes. #}
-                    <a href="{% url 'expedientes:lista' %}" class="marca">
-                        <img src="{% static 'expedientes/logo.svg' %}" alt="" width="48" height="48">
-                        <span class="marca-texto">
-                            <span class="marca-nombre">Gestión Jurídica</span>
-                            <span class="marca-bajada">Expedientes y plazos</span>
-                        </span>
+                    {# La marca: logo + nombre; lleva a la pantalla inicial. #}
+                    <a href="{% url 'expedientes:inicio' %}" class="marca">
+                        <img src="{% static 'expedientes/logo.svg' %}" alt="" width="56" height="56">
+                        <span class="marca-nombre">Gestión Jurídica</span>
                     </a>
                 </li>
             </ul>
             <ul>
                 {% if user.is_authenticated %}
+                    <li><a href="{% url 'expedientes:inicio' %}">Inicio</a></li>
                     <li><a href="{% url 'expedientes:lista' %}">Expedientes</a></li>
                     <li><a href="{% url 'expedientes:vencimientos' %}">Vencimientos</a></li>
                     <li>

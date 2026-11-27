@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block titulo %}Inicio{% endblock %}
+{% block contenido %}
+
+    <div class="encabezado">
+        <h1>Inicio</h1>
+        <a href="{% url 'expedientes:nuevo' %}" role="button">Nuevo expediente</a>
+    </div>
+
+    {# Aviso: vencimientos pendientes cuya fecha ya pasó. Solo aparece si hay alguno. #}
+    {% if cantidad_vencidos %}
+        <article class="mensaje mensaje-error aviso-vencidos" role="alert">
+            <strong>Atención:</strong>
+            tenés {{ cantidad_vencidos }} vencimiento{{ cantidad_vencidos|pluralize }} sin resolver con la fecha ya pasada.
+            <a href="{% url 'expedientes:vencimientos' %}">Revisarlo{{ cantidad_vencidos|pluralize }} en el panel de vencimientos</a>
+        </article>
+    {% endif %}
+
+    {# Indicadores: una tarjeta por número. "grid" (de Pico) los pone en fila y, #}
+    {# en el celular, uno debajo del otro.                                      #}
+    <div class="grid indicadores">
+        <article class="indicador">
+            <span class="indicador-numero">{{ en_tramite }}</span>
+            <span class="indicador-texto">Expediente{{ en_tramite|pluralize }} en trámite</span>
+            <a href="{% url 'expedientes:lista' %}">Ver listado</a>
+        </article>
+        <article class="indicador{% if vencen_hoy %} indicador-hoy{% endif %}">
+            <span class="indicador-numero">{{ vencen_hoy|length }}</span>
+            <span class="indicador-texto">Vencimiento{{ vencen_hoy|length|pluralize }} hoy</span>
+            <a href="#hoy">Ver detalle</a>
+        </article>
+        <article class="indicador">
+            <span class="indicador-numero">{{ proximos|length }}</span>
+            <span class="indicador-texto">Vencimiento{{ proximos|length|pluralize }} en los próximos {{ dias_aviso }} días</span>
+            <a href="#proximos">Ver detalle</a>
+        </article>
+        <article class="indicador">
+            <span class="indicador-numero">{{ con_movimiento }}</span>
+            <span class="indicador-texto">Expediente{{ con_movimiento|pluralize }} con movimiento en los últimos {{ dias_movimiento }} días</span>
+            <a href="{% url 'expedientes:lista' %}?estado=todos">Ver listado</a>
+        </article>
+    </div>
+
+    <article id="hoy">
+        <header><h3>Vencen hoy</h3></header>
+        {% include "expedientes/_tabla_vencimientos.html" with vencimientos=vencen_hoy vacio="No hay vencimientos para hoy." %}
+    </article>
+
+    <article id="proximos">
+        <header><h3>Próximos {{ dias_aviso }} días</h3></header>
+        {% include "expedientes/_tabla_vencimientos.html" with vencimientos=proximos vacio="No hay vencimientos en los próximos días." %}
+    </article>
+
+{% endblock %}
