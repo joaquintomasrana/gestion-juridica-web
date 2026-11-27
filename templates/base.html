@@ -8,43 +8,42 @@
     {# Sin esta línea, el celular muestra la página "de escritorio" achicada. #}
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block titulo %}{% endblock %} — Gestión Jurídica</title>
-    {# Ícono de la pestaña del navegador: el mismo logo de la barra. #}
+    {# Ícono de la pestaña del navegador: la balanza. #}
     <link rel="icon" href="{% static 'expedientes/logo.svg' %}" type="image/svg+xml">
     {# Pico se sirve desde el proyecto (no por CDN): funciona sin internet. #}
     <link rel="stylesheet" href="{% static 'expedientes/pico.min.css' %}">
     <link rel="stylesheet" href="{% static 'expedientes/estilos.css' %}">
 </head>
 <body>
-    {# La barra ocupa todo el ancho (para que su color de fondo llegue a los bordes); #}
-    {# el contenido de adentro queda centrado con "container".                      #}
-    <header class="barra">
-        <nav class="container">
-            <ul>
-                <li>
-                    {# La marca: logo + nombre; lleva a la pantalla inicial. #}
-                    <a href="{% url 'expedientes:inicio' %}" class="marca">
-                        <img src="{% static 'expedientes/logo.svg' %}" alt="" width="56" height="56">
-                        <span class="marca-nombre">Gestión Jurídica</span>
-                    </a>
-                </li>
-            </ul>
-            <ul>
+    {# La mancheta, como el encabezado de un diario: fecha y usuario arriba,     #}
+    {# el nombre centrado y el menú entre dos filetes.                           #}
+    <header class="mancheta container">
+        <div class="mancheta-sup">
+            {% now "l j \d\e F \d\e Y" as hoy %}
+            <span class="mancheta-fecha">{{ hoy|capfirst }}</span>
+            <span class="mancheta-usuario">
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'expedientes:inicio' %}">Inicio</a></li>
-                    <li><a href="{% url 'expedientes:lista' %}">Expedientes</a></li>
-                    <li><a href="{% url 'expedientes:vencimientos' %}">Vencimientos</a></li>
-                    <li>
-                        <form method="post" action="{% url 'logout' %}" class="en-linea">
-                            {% csrf_token %}
-                            <button type="submit" class="secondary outline">Salir ({{ user.username }})</button>
-                        </form>
-                    </li>
+                    {{ user.username }}
+                    <form method="post" action="{% url 'logout' %}" class="en-linea">
+                        {% csrf_token %}
+                        <button type="submit" class="outline">Salir</button>
+                    </form>
                 {% else %}
-                    <li><a href="{% url 'login' %}">Ingresar</a></li>
-                    <li><a href="{% url 'registro' %}">Crear cuenta</a></li>
+                    <a href="{% url 'login' %}">Ingresar</a>
+                    <a href="{% url 'registro' %}">Crear cuenta</a>
                 {% endif %}
-            </ul>
-        </nav>
+            </span>
+        </div>
+        <a href="{% url 'expedientes:inicio' %}" class="mancheta-nombre">Gestión Jurídica</a>
+        {% if user.is_authenticated %}
+            <nav class="mancheta-nav" aria-label="Menú principal">
+                <a href="{% url 'expedientes:inicio' %}">Inicio</a>
+                <a href="{% url 'expedientes:lista' %}">Expedientes</a>
+                <a href="{% url 'expedientes:vencimientos' %}">Vencimientos</a>
+            </nav>
+        {% else %}
+            <nav class="mancheta-nav" aria-label="Menú principal"></nav>
+        {% endif %}
     </header>
 
     <main class="container">

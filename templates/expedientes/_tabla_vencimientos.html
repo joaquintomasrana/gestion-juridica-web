@@ -1,33 +1,24 @@
-{# Tabla de vencimientos reutilizable (la usa el dashboard dos veces).        #}
-{# Recibe: "vencimientos" (lista) y "vacio" (texto si no hay ninguno).       #}
-<div class="overflow-auto">
-    <table>
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Descripción</th>
-                <th>Expediente</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for vencimiento in vencimientos %}
-                <tr>
-                    <td>{{ vencimiento.fecha|date:"d/m/Y" }}</td>
-                    <td>{{ vencimiento.descripcion }}</td>
-                    <td><a href="{% url 'expedientes:detalle' vencimiento.expediente.pk %}">{{ vencimiento.expediente.caratula }}</a></td>
-                    <td>
-                        <form method="post" action="{% url 'expedientes:vencimiento_cumplir' vencimiento.pk %}" class="en-linea">
-                            {% csrf_token %}
-                            {# Después de marcarlo, volver al dashboard. #}
-                            <input type="hidden" name="volver" value="inicio">
-                            <button type="submit" class="outline">Cumplido</button>
-                        </form>
-                    </td>
-                </tr>
-            {% empty %}
-                <tr><td colspan="4">{{ vacio }}</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+{# Lista de vencimientos reutilizable (la usa el dashboard dos veces).       #}
+{# Recibe: "vencimientos" (lista), "vacio" (texto si no hay ninguno) y,     #}
+{# opcional, "urgente" (True: la fecha va en rojo, para los de hoy).         #}
+{% if vencimientos %}
+    <ul class="lista-vencimientos">
+        {% for vencimiento in vencimientos %}
+            <li>
+                <span class="venc-fecha{% if urgente %} venc-fecha-hoy{% endif %}">{{ vencimiento.fecha|date:"d/m" }}</span>
+                <span class="venc-texto">
+                    <span class="venc-descripcion">{{ vencimiento.descripcion }}</span>
+                    <a href="{% url 'expedientes:detalle' vencimiento.expediente.pk %}" class="venc-expediente">{{ vencimiento.expediente.caratula }}</a>
+                </span>
+                <form method="post" action="{% url 'expedientes:vencimiento_cumplir' vencimiento.pk %}" class="en-linea">
+                    {% csrf_token %}
+                    {# Después de marcarlo, volver al dashboard. #}
+                    <input type="hidden" name="volver" value="inicio">
+                    <button type="submit" class="outline">Marcar cumplido</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p class="lista-vacia">{{ vacio }}</p>
+{% endif %}

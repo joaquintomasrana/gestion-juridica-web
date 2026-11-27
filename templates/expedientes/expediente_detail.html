@@ -89,7 +89,7 @@
                         {% if vencimiento.estado == "pendiente" %}
                             <form method="post" action="{% url 'expedientes:vencimiento_cumplir' vencimiento.pk %}" class="en-linea">
                                 {% csrf_token %}
-                                <button type="submit" class="outline">Cumplido</button>
+                                <button type="submit" class="outline">Marcar cumplido</button>
                             </form>
                         {% endif %}
                         <a href="{% url 'expedientes:vencimiento_editar' vencimiento.pk %}">Editar</a>

@@ -1,166 +1,268 @@
-/* Estilos propios. Pico.css pone la base; acá solo lo que Pico no trae
-   y la personalización (paleta, tipografía y tamaño). */
+/* Estilos propios. Pico.css pone la base; acá va la personalización con el
+   estilo EDITORIAL (inspirado en los diarios): blanco y negro, un solo color de
+   acento, títulos con serifa, secciones separadas por filetes (líneas finas)
+   en lugar de tarjetas, y nada de sombras ni degradados (diseño plano). */
 
 
 /* ---------------------------------------------------------------------------
-   Tipografía: IBM Plex Sans, guardada en el proyecto (funciona sin internet).
-   Sobria y profesional; distingue bien caracteres parecidos (l, I, 1 / O, 0),
-   útil en números de expediente.
-   Es una fuente "variable": un solo archivo trae todos los grosores (100 a 700).
-   Licencia SIL Open Font License: ver fuentes/OFL-IBM-Plex-Sans.txt.
+   Tipografías, guardadas en el proyecto (funcionan sin internet).
+   Las dos son "variables": un solo archivo trae todos los grosores.
+   Licencia SIL Open Font License: ver fuentes/OFL-*.txt.
    --------------------------------------------------------------------------- */
-/* IBM Plex Serif (con serifa), solo para el nombre de la app: misma familia que
-   el texto, así combinan; la serifa evoca lo jurídico (escritos, expedientes). */
+/* Newsreader: serifa pensada para leer en pantalla. Títulos, el nombre de la
+   app y los textos largos (las observaciones de los pasos procesales). */
 @font-face {
-    font-family: "IBM Plex Serif";
-    src: url("fuentes/ibm-plex-serif-latin-600.woff2") format("woff2");
-    font-weight: 600;
+    font-family: "Newsreader";
+    src: url("fuentes/newsreader-latin-wght.woff2") format("woff2");
+    font-weight: 200 800;
+    font-display: swap;   /* mientras carga, muestra la fuente del sistema */
+}
+/* Libre Franklin: sans serif sobria (de la familia de la que usan muchos
+   diarios). Menú, rótulos, tablas, formularios y texto general. */
+@font-face {
+    font-family: "Libre Franklin";
+    src: url("fuentes/libre-franklin-latin-wght.woff2") format("woff2");
+    font-weight: 100 900;
     font-display: swap;
 }
-@font-face {
-    font-family: "IBM Plex Sans";
-    src: url("fuentes/ibm-plex-sans-latin-wght.woff2") format("woff2");
-    font-weight: 100 700;
-    font-display: swap;  /* mientras carga, muestra la fuente del sistema */
-}
 
 
 /* ---------------------------------------------------------------------------
-   Paleta "Sapphire nightfall whisper" sobre las variables de Pico.
+   Paleta y variables de Pico.
    Pico define todos sus colores como variables (--pico-...): al redefinirlas
-   acá, toda la app cambia de color sin tocar las plantillas.
-
-   Colores de la paleta:
-     #262B40 azul noche    #06457F azul marino    #2C444C verde petróleo
-     #0474C4 azul zafiro   #5379AE azul medio     #A8C4EC celeste
-   Contraste (mínimo de accesibilidad WCAG AA: 4,5 a 1 para texto):
-     texto #262B40 sobre el fondo       -> 12,6
-     links y botones #06457F            -> 8,7  (texto blanco encima: 9,7)
-     menú blanco sobre la barra #262B40 -> 14,0
-   La paleta no trae un color casi blanco para el fondo, así que se usa un
-   celeste muy diluido (#EEF3FB) que sale del #A8C4EC.
-
+   acá, toda la app cambia sin tocar las plantillas.
+   Contraste sobre blanco (mínimo de accesibilidad WCAG AA para texto: 4,5 a 1):
+     texto #121212 -> 18,7 · gris #5A5A5A -> 6,9 · links #1D4F91 -> 8,6
+     rojo #B42318 -> 6,6 · naranja #8A5300 -> 6,3 · verde #2E6B34 -> 6,4
    El selector :root[data-theme="light"] es a propósito más específico que el
    de Pico, para ganarle aunque los dos definan la misma variable.
    --------------------------------------------------------------------------- */
 :root[data-theme="light"] {
-    /* Tamaño de TODO (letra, márgenes, botones, campos): Pico mide casi todo en
-       "rem", que depende de este valor; al bajarlo, se achica la pantalla entera.
-       En escritorio queda en 75 %. En el celular se mantiene en 100 % (ver abajo):
-       más chico costaría leer, y el iPhone hace zoom solo al tocar un campo
-       con letra menor a 16 px. */
+    /* Tamaño de todo (Pico mide casi todo en "rem", que depende de este valor).
+       Celular 100 %; en pantallas más grandes, un poco menos (ver abajo). */
     --pico-font-size: 100%;
 
-    /* Tipografía para todo el texto */
-    --pico-font-family: "IBM Plex Sans", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --pico-font-family: "Libre Franklin", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    /* Plano: sin sombras y con esquinas casi rectas */
+    --pico-border-radius: 2px;
+    --pico-card-box-shadow: none;
+    --pico-dropdown-box-shadow: none;
 
     /* Fondo y texto */
-    --pico-background-color: #EEF3FB;
-    --pico-color: #262B40;
-    --pico-muted-color: #3F5A80;
-    --pico-muted-border-color: #D3DFF0;
-    --pico-text-selection-color: rgba(168, 196, 236, 0.5);
-    --pico-h1-color: #262B40;
-    --pico-h2-color: #262B40;
-    --pico-h3-color: #06457F;
-    --pico-h4-color: #06457F;
-    --pico-h5-color: #06457F;
-    --pico-h6-color: #06457F;
+    --pico-background-color: #FFFFFF;
+    --pico-color: #121212;
+    --pico-muted-color: #5A5A5A;
+    --pico-muted-border-color: #D9D9D9;
+    --pico-text-selection-color: rgba(29, 79, 145, 0.2);
+    --pico-h1-color: #121212;
+    --pico-h2-color: #121212;
+    --pico-h3-color: #121212;
+    --pico-h4-color: #121212;
+    --pico-h5-color: #121212;
+    --pico-h6-color: #121212;
 
-    /* Color principal (links y botones): azul marino; al pasar el mouse, zafiro */
-    --pico-primary: #06457F;
-    --pico-primary-background: #06457F;
-    --pico-primary-border: #06457F;
-    --pico-primary-underline: rgba(6, 69, 127, 0.5);
-    --pico-primary-hover: #0474C4;
-    --pico-primary-hover-background: #0474C4;
-    --pico-primary-hover-border: #0474C4;
-    --pico-primary-hover-underline: #0474C4;
-    --pico-primary-focus: rgba(4, 116, 196, 0.35);
+    /* Links en azul tinta; botones principales en negro (como en un diario) */
+    --pico-primary: #1D4F91;
+    --pico-primary-underline: rgba(29, 79, 145, 0.4);
+    --pico-primary-hover: #0F2F5C;
+    --pico-primary-hover-underline: #0F2F5C;
+    --pico-primary-background: #121212;
+    --pico-primary-border: #121212;
+    --pico-primary-hover-background: #3A3A3A;
+    --pico-primary-hover-border: #3A3A3A;
+    --pico-primary-focus: rgba(29, 79, 145, 0.35);
     --pico-primary-inverse: #FFFFFF;
 
-    /* Color secundario (Salir, Eliminar expediente): verde petróleo */
-    --pico-secondary: #2C444C;
-    --pico-secondary-background: #2C444C;
-    --pico-secondary-border: #2C444C;
-    --pico-secondary-underline: rgba(44, 68, 76, 0.5);
-    --pico-secondary-hover: #262B40;
-    --pico-secondary-hover-background: #262B40;
-    --pico-secondary-hover-border: #262B40;
-    --pico-secondary-hover-underline: #262B40;
-    --pico-secondary-focus: rgba(83, 121, 174, 0.35);
+    --pico-secondary: #121212;
+    --pico-secondary-background: #121212;
+    --pico-secondary-border: #121212;
+    --pico-secondary-underline: rgba(18, 18, 18, 0.4);
+    --pico-secondary-hover: #3A3A3A;
+    --pico-secondary-hover-background: #3A3A3A;
+    --pico-secondary-hover-border: #3A3A3A;
+    --pico-secondary-hover-underline: #3A3A3A;
+    --pico-secondary-focus: rgba(18, 18, 18, 0.25);
     --pico-secondary-inverse: #FFFFFF;
 
-    /* Tarjetas (<article>): blancas sobre el fondo celeste; encabezado y pie, celeste muy suave */
-    --pico-card-background-color: #FFFFFF;
-    --pico-card-border-color: #D3DFF0;
-    --pico-card-sectioning-background-color: #F5F8FD;
+    /* "Tarjetas": sin fondo propio (las secciones se separan con filetes) */
+    --pico-card-background-color: transparent;
+    --pico-card-border-color: #D9D9D9;
+    --pico-card-sectioning-background-color: transparent;
 
-    /* Formularios: campos blancos con borde azul medio (contraste 4,5 a 1) */
+    /* Formularios: campos blancos, borde gris medio (3,4 a 1, suficiente para un borde) */
     --pico-form-element-background-color: #FFFFFF;
-    --pico-form-element-selected-background-color: #A8C4EC;
-    --pico-form-element-border-color: #5379AE;
-    --pico-form-element-color: #262B40;
-    --pico-form-element-placeholder-color: #3F5A80;
+    --pico-form-element-selected-background-color: #E8EEF6;
+    --pico-form-element-border-color: #8C8C8C;
+    --pico-form-element-color: #121212;
+    --pico-form-element-placeholder-color: #6B6B6B;
     --pico-form-element-active-background-color: #FFFFFF;
-    --pico-form-element-active-border-color: #0474C4;
-    --pico-form-element-focus-color: rgba(4, 116, 196, 0.35);
+    --pico-form-element-active-border-color: #121212;
+    --pico-form-element-focus-color: rgba(29, 79, 145, 0.35);
 
-    /* Tablas: líneas suaves y filas alternadas en celeste */
-    --pico-table-border-color: #D3DFF0;
-    --pico-table-row-stripped-background-color: rgba(168, 196, 236, 0.18);
+    /* Tablas: solo filetes horizontales, sin filas alternadas */
+    --pico-table-border-color: #D9D9D9;
+    --pico-table-row-stripped-background-color: transparent;
 }
 
-/* Tamaño según el ancho de pantalla: celular 100 %, tablet 87,5 %, escritorio 75 %
-   y monitores muy anchos 80 %. */
+/* Tamaño según el ancho de pantalla: celular 100 %, tablet 93,75 %,
+   escritorio 87,5 % y monitores muy anchos 93,75 %. */
 @media (min-width: 768px) {
-    :root[data-theme="light"] { --pico-font-size: 87.5%; }
+    :root[data-theme="light"] { --pico-font-size: 93.75%; }
 }
 @media (min-width: 1024px) {
-    :root[data-theme="light"] { --pico-font-size: 75%; }
+    :root[data-theme="light"] { --pico-font-size: 87.5%; }
 }
 @media (min-width: 1536px) {
-    :root[data-theme="light"] { --pico-font-size: 80%; }
+    :root[data-theme="light"] { --pico-font-size: 93.75%; }
 }
 
-/* Títulos más firmes */
-h1, h2, h3, h4, h5, h6 { font-weight: 700; }
 
-/* La barra de navegación ocupa todo el ancho, en azul noche, con el menú en blanco. */
-header.barra { background-color: #262B40; margin-bottom: 1.5rem; }
-header.barra nav a { color: #FFFFFF; }
-header.barra nav a:hover { color: #A8C4EC; }
+/* ---------------------------------------------------------------------------
+   Tipografía de títulos
+   --------------------------------------------------------------------------- */
+h1, h2, h3 {
+    font-family: "Newsreader", Georgia, serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+h1 { font-size: 2.5rem; line-height: 1.1; }
+h2 { font-size: 2rem; line-height: 1.15; }
+/* Reparte las palabras en renglones parejos (sin una palabra sola al final),
+   como hacen los diarios con sus titulares. */
+h1, h2, h3 { text-wrap: balance; }
 
-/* La marca: logo + nombre (con serifa) + una bajada que dice qué hace la app. */
-/* Tamaños en px y no en rem, a propósito: la marca NO se achica con el 75 % del
-   resto de la app. Achicada, se veía pixelada en monitores 1080p (en Windows, el
-   texto claro sobre fondo oscuro y las serifas finas se dibujan peor en tamaños chicos). */
-header.barra a.marca {
+/* Rótulo de sección (VENCEN HOY, PARTES...): mayúsculas chicas y espaciadas */
+.rotulo,
+article > header h3 {
+    font-family: var(--pico-font-family);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+
+/* ---------------------------------------------------------------------------
+   La mancheta (el encabezado, como el de un diario): fecha y usuario arriba,
+   el nombre centrado con serifa y el menú entre dos filetes.
+   --------------------------------------------------------------------------- */
+header.mancheta { margin-bottom: 2.5rem; }
+.mancheta-sup {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 14px;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    font-size: 0.8125rem;
+    color: var(--pico-muted-color);
+}
+.mancheta-sup a { color: var(--pico-muted-color); }
+.mancheta-usuario { display: flex; align-items: center; gap: 1rem; }
+/* El nombre: tamaño fijo en px a propósito (no se achica con el resto). */
+.mancheta-nombre {
+    display: block;
+    text-align: center;
+    padding: 0.25rem 0 1rem;
+    font-family: "Newsreader", Georgia, serif;
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1;
+    color: #121212;
     text-decoration: none;
 }
-.marca img { display: block; flex-shrink: 0; width: 56px; height: 56px; }
-.marca-nombre {
-    line-height: 1.1;
-    font-family: "IBM Plex Serif", Georgia, serif;
+.mancheta-nombre:hover { color: #121212; text-decoration: none; }
+/* El menú, entre un filete fino arriba y uno doble abajo */
+nav.mancheta-nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 2.5rem;
+    border-top: 1px solid #121212;
+    border-bottom: 3px double #121212;
+    padding: 0.75rem 0;
+}
+nav.mancheta-nav a {
+    color: #121212;
+    font-size: 0.75rem;
     font-weight: 600;
-    font-size: 32px;
-    letter-spacing: 0.01em;
-    color: #FFFFFF;
-    text-rendering: optimizeLegibility;   /* activa el ajuste fino entre letras */
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0;
+    margin: 0;
 }
-/* Al pasar el mouse, la marca no cambia de color (no es un link "común"). */
-header.barra a.marca:hover .marca-nombre { color: #FFFFFF; }
-/* En el celular, más chica: hay poco espacio junto al menú. */
+nav.mancheta-nav a:hover { color: #1D4F91; }
 @media (max-width: 576px) {
-    .marca-nombre { font-size: 22px; }
-    .marca img { width: 40px; height: 40px; }
+    .mancheta-nombre { font-size: 30px; padding-bottom: 0.75rem; }
+    .mancheta-fecha { display: none; }   /* en el celular, sin la fecha */
+    .mancheta-sup { justify-content: flex-end; }
 }
-/* El botón Salir: borde y texto claros sobre la barra oscura. */
-header.barra button.secondary.outline { color: #FFFFFF; border-color: #A8C4EC; }
-header.barra button.secondary.outline:hover { color: #262B40; background-color: #A8C4EC; }
+
+
+/* ---------------------------------------------------------------------------
+   Secciones: un filete grueso arriba y un panel gris cálido apenas perceptible
+   (#F6F6F4) que separa las áreas sin volver a las tarjetas con sombra.
+   Sobre ese gris, el texto gris (#5A5A5A) mantiene un contraste de 6,4 a 1.
+   --------------------------------------------------------------------------- */
+article {
+    background: #F6F6F4;
+    border-radius: 0;
+    padding: 0 1.5rem 1.5rem;
+    border-top: 2px solid #121212;
+    margin-bottom: 2.75rem;
+}
+article > header {
+    background: none;
+    border: 0;
+    margin: 0 0 0.5rem;
+    padding: 0.875rem 0 0;
+}
+article > footer {
+    background: none;
+    border-top: 1px solid #DCDCD8;
+    margin: 1.25rem 0 0;
+    padding: 0.875rem 0 0;
+}
+@media (max-width: 576px) {
+    article { padding: 0 1rem 1.25rem; }
+}
+article > header h2 { margin: 0.25rem 0 0.25rem; }
+article > header p { margin: 0.5rem 0 0; color: var(--pico-muted-color); }
+
+/* Botones: rectos, en mayúsculas chicas.
+   :is() toma la especificidad de su selector más fuerte ([type="submit"]):
+   con un simple "button", Pico ganaba en los botones de formulario
+   (Cumplido, Salir) y los dejaba más grandes y finos que el resto. */
+:is(button, [type="submit"], [type="button"], [type="reset"], [role="button"]) {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+/* Botones de contorno (Cumplido, Editar...): en negro, no en azul */
+button.outline, [role="button"].outline,
+button.secondary.outline, [role="button"].secondary.outline {
+    --pico-color: #121212;
+    color: #121212;
+    border-color: #121212;
+    background: none;
+}
+button.outline:hover, [role="button"].outline:hover {
+    color: #FFFFFF;
+    background-color: #121212;
+}
+
+/* Tablas: encabezados en mayúsculas chicas sobre un filete negro */
+thead th {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 2px solid #121212;
+}
 
 
 /* ---------------------------------------------------------------------------
@@ -169,46 +271,60 @@ header.barra button.secondary.outline:hover { color: #262B40; background-color: 
 
 /* Formularios que van dentro de una línea de texto (Salir, Cumplido). */
 form.en-linea { display: inline; margin: 0; }
-form.en-linea button { width: auto; margin: 0; padding: 0.25rem 0.75rem; }
+form.en-linea button { width: auto; margin: 0; padding: 0.375rem 0.75rem; }
 
-/* Mensajes de Django: el color del borde distingue éxito de error. */
-.mensaje { padding: 0.75rem 1rem; margin-bottom: 1rem; border-left: 4px solid; }
-.mensaje-success { border-color: #2E6B34; }
-.mensaje-error { border-color: #B3261E; }
-.mensaje-warning { border-color: #8A5300; }
+/* Mensajes de Django: un recuadro gris suave con una franja del color del tipo. */
+article.mensaje {
+    border: 0;
+    border-left: 4px solid #5A5A5A;
+    background: #F5F5F3;
+    padding: 0.875rem 1.125rem;
+    margin-bottom: 1.5rem;
+}
+article.mensaje-success { border-left-color: #2E6B34; }
+article.mensaje-error { border-left-color: #B42318; }
+article.mensaje-warning { border-left-color: #8A5300; }
 
 /* Vencimientos. Rojo y naranja NO salen de la paleta a propósito: tienen que
    alarmar de un vistazo (un plazo vencido no puede pasar desapercibido). */
-.vencido { color: #B3261E; font-weight: bold; }
-.proximo { color: #8A5300; font-weight: bold; }
-.cumplido { color: #2E6B34; font-weight: bold; }   /* verde: contraste 5,8 sobre el fondo */
+.vencido { color: #B42318; font-weight: 700; }
+.proximo { color: #8A5300; font-weight: 700; }
+.cumplido { color: #2E6B34; font-weight: 700; }
 .pendiente { color: var(--pico-muted-color); }
+/* Filas de tablas (listado de expedientes y panel de vencimientos): un gris
+   apenas visible al pasar el mouse, para no perder la fila. */
+tbody tr:hover td { background-color: #F6F6F4; }
 /* En el panel, una franja de color a la izquierda de la fila. */
-tr.fila-vencida td:first-child { box-shadow: inset 4px 0 0 #B3261E; }
+tr.fila-vencida td:first-child { box-shadow: inset 4px 0 0 #B42318; }
 tr.fila-proxima td:first-child { box-shadow: inset 4px 0 0 #8A5300; }
 
 /* Botón para acciones destructivas (borrar). */
-button.peligro { background-color: #B3261E; border-color: #B3261E; color: #FFFFFF; }
+button.peligro { background-color: #B42318; border-color: #B42318; color: #FFFFFF; }
 
 /* Fila de acciones chicas al lado de cada ítem (Editar, Eliminar...). */
 .acciones { font-size: 0.875rem; white-space: nowrap; }
-.acciones a, .acciones form { margin-left: 0.5rem; }
+.acciones a, .acciones form { margin-left: 0.75rem; }
 
-/* Listas de ítems dentro de cada sección del detalle. */
-.items { padding-left: 0; }
-.items li { list-style: none; padding: 0.5rem 0; border-bottom: 1px solid var(--pico-muted-border-color); }
+/* Listas de ítems dentro de cada sección del detalle, separadas por filetes. */
+.items { padding-left: 0; margin-bottom: 0.5rem; }
+.items li { list-style: none; padding: 0.75rem 0; border-bottom: 1px solid #D9D9D9; }
 .items li:last-child { border-bottom: none; }
 
 /* Observaciones de un paso procesal: plegadas por defecto (pueden ser escritos
-   enteros). white-space: pre-wrap respeta los saltos de línea y los espacios. */
+   enteros), con la serifa de lectura. pre-wrap respeta los saltos de línea. */
 .items details { margin: 0.5rem 0 0; }
 .items details summary { font-size: 0.875rem; color: var(--pico-primary); }
 .observaciones {
     white-space: pre-wrap;
-    background-color: var(--pico-background-color);
-    border-left: 3px solid #0474C4;
-    padding: 0.75rem 1rem;
-    margin: 0.5rem 0 0;
+    font-family: "Newsreader", Georgia, serif;
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #2A2A2A;
+    background-color: #FFFFFF;          /* blanca sobre el panel gris: se lee como una hoja */
+    border: 1px solid #E2E2DE;
+    padding: 1rem 1.25rem;
+    margin: 0.75rem 0 0;
+    max-width: 48rem;      /* renglones de largo cómodo para leer */
     max-height: 32rem;     /* si el escrito es muy largo, se desplaza adentro */
     overflow-y: auto;
 }
@@ -217,8 +333,15 @@ button.peligro { background-color: #B3261E; border-color: #B3261E; color: #FFFFF
 textarea { resize: vertical; }
 
 /* Datos del expediente: etiqueta y valor en dos columnas; en el celular, una debajo de otra. */
-.datos { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; margin: 0; }
-.datos dt { font-weight: bold; }
+.datos { display: grid; grid-template-columns: max-content 1fr; gap: 0.375rem 1.5rem; margin: 0; }
+.datos dt {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--pico-muted-color);
+    padding-top: 0.2rem;
+}
 .datos dd { margin: 0; }
 @media (max-width: 576px) {
     .datos { grid-template-columns: 1fr; }
@@ -226,30 +349,108 @@ textarea { resize: vertical; }
 }
 
 /* Encabezado de página con título a la izquierda y botón a la derecha. */
-.encabezado { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.encabezado { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
 .encabezado h1, .encabezado h2 { margin: 0; }
+/* Dentro de una sección, el encabezado lleva el rótulo y el link "+ Agregar" en una línea */
+article > header.encabezado { margin-bottom: 0.25rem; }
 
 /* Paginación */
-.paginacion { display: flex; justify-content: center; align-items: center; gap: 1rem; }
+.paginacion { display: flex; justify-content: center; align-items: center; gap: 1.5rem; }
 
 /* Los totales por moneda, un poco separados de la lista. */
-.totales { margin: 0.5rem 0 1rem; }
+.totales { margin: 0.5rem 0 0; }
 .totales p { margin: 0; }
 
-/* Dashboard (pantalla inicial): una tarjeta por indicador, con el número grande. */
-.indicadores { margin-bottom: 0.5rem; }
+
+/* ---------------------------------------------------------------------------
+   Pantalla inicial (dashboard), como la portada de un diario
+   --------------------------------------------------------------------------- */
+/* Antetítulo + titular + bajada */
+.portada { max-width: 56rem; margin-bottom: 2.5rem; }
+.antetitulo {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #B42318;
+    margin-bottom: 0.75rem;
+}
+.portada h1 { font-size: 3rem; line-height: 1.08; margin: 0 0 1rem; }
+.bajada {
+    font-family: "Newsreader", Georgia, serif;
+    font-size: 1.3125rem;
+    line-height: 1.5;
+    color: #3A3A3A;
+    margin: 0 0 1.25rem;
+}
+.bajada a.alerta { color: #B42318; font-weight: 600; }
+
+/* Los cuatro indicadores, en columnas separadas por filetes verticales */
+.indicadores {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 2px solid #121212;
+    background: #F6F6F4;          /* el mismo gris de las secciones: un bloque de datos */
+    padding: 0 1.5rem;
+    margin-bottom: 2.75rem;
+}
 .indicador {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    border-top: 4px solid #0474C4;   /* franja de la paleta arriba de cada tarjeta */
+    gap: 0.375rem;
+    padding: 1.25rem 1.5rem 1.375rem;
+    border-right: 1px solid #D9D9D9;
 }
-.indicador-numero { font-size: 2.5rem; font-weight: 700; line-height: 1.1; color: #06457F; }
-.indicador-texto { color: var(--pico-muted-color); }
-.indicador a { margin-top: auto; font-size: 0.875rem; }
-/* Si algo vence hoy, la tarjeta lo marca en naranja (como "próximo" en el panel). */
-.indicador-hoy { border-top-color: #8A5300; }
-.indicador-hoy .indicador-numero { color: #8A5300; }
-/* El aviso de vencimientos sin resolver, un poco más visible que un mensaje común. */
-.aviso-vencidos { font-size: 1.0625rem; }
-.aviso-vencidos a { color: #B3261E; font-weight: 600; }
+.indicador:first-child { padding-left: 0; }
+.indicador:last-child { border-right: 0; padding-right: 0; }
+.indicador-numero {
+    font-family: "Newsreader", Georgia, serif;
+    font-size: 3.25rem;
+    font-weight: 500;
+    line-height: 1;
+}
+.indicador-texto { font-size: 0.875rem; color: var(--pico-muted-color); }
+.indicador a { margin-top: auto; padding-top: 0.5rem; font-size: 0.8125rem; }
+/* Si algo vence hoy, el número va en rojo */
+.indicador-hoy .indicador-numero { color: #B42318; }
+/* En el celular, de a dos por fila */
+@media (max-width: 768px) {
+    .indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 1rem; }
+    .indicador { padding: 1rem 0.75rem; }
+    .indicador:nth-child(2n) { border-right: 0; }
+    .indicador:nth-child(2n+1) { padding-left: 0; }
+    .indicador:nth-child(-n+2) { border-bottom: 1px solid #D9D9D9; }
+}
+
+/* Las dos columnas de vencimientos (hoy y próximos 7 días) */
+.columnas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 3.5rem;
+}
+@media (max-width: 768px) {
+    .columnas { grid-template-columns: 1fr; }
+}
+.lista-vencimientos { list-style: none; padding: 0; margin: 0; }
+.lista-vencimientos li {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: center;
+    /* El margen negativo extiende el resaltado del hover un poco hacia los costados */
+    margin: 0 -0.75rem;
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #D9D9D9;
+}
+/* Al pasar el mouse, la fila se oscurece apenas: se sabe en qué vencimiento se
+   está antes de tocar "Marcar cumplido". */
+.lista-vencimientos li:hover { background-color: #ECECE8; }
+.venc-fecha { font-family: "Newsreader", Georgia, serif; font-size: 1.25rem; font-weight: 600; }
+/* Los de hoy, con la fecha en rojo: la lista se distingue de un vistazo. */
+.venc-fecha-hoy { color: #B42318; }
+.venc-texto { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+.venc-descripcion { font-weight: 600; }
+.venc-expediente { font-size: 0.875rem; }
+.lista-vacia { color: var(--pico-muted-color); padding: 1rem 0; margin: 0; }

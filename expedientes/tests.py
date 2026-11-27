@@ -351,7 +351,8 @@ class EstiloTests(DosUsuariosTestCase):
         rutas = [
             "expedientes/pico.min.css",
             "expedientes/estilos.css",
-            "expedientes/fuentes/ibm-plex-sans-latin-wght.woff2",
+            "expedientes/fuentes/newsreader-latin-wght.woff2",
+            "expedientes/fuentes/libre-franklin-latin-wght.woff2",
         ]
         for ruta in rutas:
             with self.subTest(ruta=ruta):
@@ -455,7 +456,7 @@ class InicioTests(DosUsuariosTestCase):
         self.vencimiento(self.exp_ana, -10, "Cumplido a tiempo", estado=Vencimiento.Estado.CUMPLIDO)
         respuesta = self.ver()
         self.assertEqual(respuesta.context["cantidad_vencidos"], 1)
-        self.assertContains(respuesta, "tenés 1 vencimiento sin resolver")
+        self.assertContains(respuesta, "Tenés 1 vencimiento sin resolver")
 
     def test_cuenta_los_expedientes_con_movimiento_en_el_ultimo_mes(self):
         hace_40_dias = timezone.now() - timedelta(days=40)
@@ -486,6 +487,33 @@ class InicioTests(DosUsuariosTestCase):
         ]:
             with self.subTest(texto=texto):
                 self.assertContains(respuesta, texto)
+
+    def test_el_boton_dice_marcar_cumplido_y_los_de_hoy_se_destacan(self):
+        vencimiento = self.vencimiento(self.exp_ana, 0, "Hoy")
+        self.vencimiento(self.exp_ana, 3, "Pronto")
+        # El botón es una acción ("Marcar cumplido"), distinta de la etiqueta de estado.
+        for url in [reverse("expedientes:inicio"), reverse("expedientes:vencimientos"),
+                    self.exp_ana.get_absolute_url()]:
+            with self.subTest(url=url):
+                self.assertContains(self.client.get(url), "Marcar cumplido</button>")
+        # En el inicio, solo la fecha del de hoy va en rojo.
+        respuesta = self.ver()
+        self.assertContains(respuesta, "venc-fecha-hoy", count=1)
+        self.assertEqual(vencimiento.fecha, self.hoy)
+
+    def test_el_titular_respeta_singular_plural_y_cero(self):
+        from .views import InicioView
+        casos = [
+            (0, 0, "Sin vencimientos hoy y ninguno en los próximos 7 días"),
+            (1, 1, "Un vencimiento hoy y uno en los próximos 7 días"),
+            (3, 4, "3 vencimientos hoy y 4 en los próximos 7 días"),
+        ]
+        for hoy, proximos, esperado in casos:
+            with self.subTest(hoy=hoy, proximos=proximos):
+                self.assertEqual(InicioView.titular(hoy, proximos), esperado)
+        # Y el titular aparece en la portada
+        self.vencimiento(self.exp_ana, 0, "Hoy")
+        self.assertContains(self.ver(), "Un vencimiento hoy y ninguno en los próximos 7 días")
 
     def test_cumplido_desde_el_dashboard_vuelve_al_dashboard(self):
         vencimiento = self.vencimiento(self.exp_ana, 0, "Hoy")

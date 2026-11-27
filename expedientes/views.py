@@ -53,7 +53,30 @@ class InicioView(LoginRequiredMixin, TemplateView):
         context["cantidad_vencidos"] = pendientes.filter(fecha__lt=hoy).count()
         context["dias_aviso"] = Vencimiento.DIAS_AVISO
         context["dias_movimiento"] = self.DIAS_MOVIMIENTO
+        context["titular"] = self.titular(len(context["vencen_hoy"]), len(context["proximos"]))
         return context
+
+    @staticmethod
+    def titular(hoy, proximos):
+        """El titular de la portada, con la gramática correcta en cada caso.
+
+        Ej.: "Un vencimiento hoy y 4 en los próximos 7 días".
+        """
+        if hoy == 0:
+            parte_hoy = "Sin vencimientos hoy"
+        elif hoy == 1:
+            parte_hoy = "Un vencimiento hoy"
+        else:
+            parte_hoy = f"{hoy} vencimientos hoy"
+
+        dias = Vencimiento.DIAS_AVISO
+        if proximos == 0:
+            parte_proximos = f"ninguno en los próximos {dias} días"
+        elif proximos == 1:
+            parte_proximos = f"uno en los próximos {dias} días"
+        else:
+            parte_proximos = f"{proximos} en los próximos {dias} días"
+        return f"{parte_hoy} y {parte_proximos}"
 
 
 class ExpedienteListView(ExpedientePropioMixin, ListView):
